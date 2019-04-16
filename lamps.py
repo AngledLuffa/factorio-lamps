@@ -121,19 +121,18 @@ def convert_to_blueprint(centroids, labels, width, height):
         for j in range(width):
             neighbor = None
             if i > 0 and labels[i-1, j] == labels[i, j]:
-                neighbor = (i-1, j)
+                neighbor = lamps[(i-1, j)]
             elif j > 0 and labels[i, j-1] == labels[i, j]:
-                neighbor = (i, j-1)
+                neighbor = lamps[(i, j-1)]
 
             if neighbor:
-                neighbor_lamp = lamps[neighbor]
                 lamp = build_lamp(len(entities) + 1,
                                   j * 2 - width + 1,
                                   i * 2 - height,
-                                  neighbor_lamp["entity_number"])
+                                  neighbor["entity_number"])
                 lamps[(i, j)] = lamp
-                connection = {"entity_id": len(entities) + 1}
-                neighbor_lamp["connections"]["1"]["green"].append(connection)
+                connection = {"entity_id": lamp["entity_id"]}
+                neighbor["connections"]["1"]["green"].append(connection)
                 entities.append(lamp)
             else:
                 color = label_to_colors[labels[i, j]]
