@@ -154,16 +154,13 @@ def convert_to_blueprint(centroids, labels, width, height):
     
     return blueprint
 
-if __name__ == '__main__':
-    path = sys.argv[1]
-
-    image = Image.open(path)
+def convert_image_to_blueprint(image, shape, show_intermediates,
+                               clusters):
     print("Original image size: %s" % str(image.size))
-    image.show()
-    if len(sys.argv) > 2:
-        width = int(sys.argv[2])
-        height = int(sys.argv[3])
-
+    if show_intermediates:
+        image.show()
+    if shape:
+        width, height = shape
         print("Resizing to %d, %d" % (width, height))
         image = image.resize((width, height))
     else:
@@ -174,7 +171,8 @@ if __name__ == '__main__':
         raise RuntimeError("Only works on RGB images")
     flat_image = flat_image.reshape((width * height, 3))
 
-    centroids, labels = kmeans2(flat_image, 7, iter=50, minit='points')
+    centroids, labels = kmeans2(flat_image, clusters,
+                                iter=50, minit='points')
 
     # centroids will be a Kx3 array representing colors
     # labels will be which centroid for each pixel
@@ -184,10 +182,25 @@ if __name__ == '__main__':
     kmeans_image = np.array(kmeans_image, dtype=np.int8)
 
     new_image = Image.fromarray(kmeans_image, "RGB")
-    new_image.show()
+    if show_intermediates:
+        new_image.show()
 
     blueprint = convert_to_blueprint(centroids, labels, width, height)
+    return compress_blueprint(blueprint) 
+    
+        
+if __name__ == '__main__':
+    path = sys.argv[1]
+
+    image = Image.open(path)
+    if len(sys.argv) > 2:
+        width = int(sys.argv[2])
+        height = int(sys.argv[3])
+        shape = (width, height)
+    else:
+        shape = None
+
+    bp = convert_image_to_blueprint(image, shape, False, 7)
     print
     print("BLUEPRINT")
-    print(compress_blueprint(blueprint))
-    
+    print(bp)
