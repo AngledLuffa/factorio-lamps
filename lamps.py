@@ -22,9 +22,15 @@ def decompress_blueprint(blueprint):
     blueprint = zlib.decompress(blueprint)
     return json.loads(blueprint)
 
-def default_colors():
-    return ["signal-red", "signal-green", "signal-blue", "signal-yellow",
-            "signal-pink", "signal-cyan", "signal-white"]
+def default_colors(K):
+    defaults = ["signal-red", "signal-green", "signal-blue", "signal-yellow",
+                "signal-pink", "signal-cyan", "signal-white"]
+    if K == 7:
+        return defaults
+    elif K == 6:
+        return defaults[:-1]
+    else:
+        raise RuntimeError("K must be 6 or 7")
 
 def build_combinator(entity_number, x, y, color, color_lamp):
     combinator = {
