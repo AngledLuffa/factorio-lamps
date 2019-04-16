@@ -192,7 +192,10 @@ def convert_image_to_blueprint(image, shape, show_intermediates,
         width, height = image.size
 
     flat_image = np.asarray(image, dtype=np.float32)
-    if flat_image.shape[2] != 3:
+    if flat_image.shape[2] == 4:
+        # TODO: do something smarter?
+        flat_image = flat_image[:, :, :3]
+    elif flat_image.shape[2] != 3:
         raise RuntimeError("Only works on RGB images.  Color depth: %d" %
                            flat_image.shape[2])
     flat_image = flat_image.reshape((width * height, 3))
