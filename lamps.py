@@ -116,7 +116,7 @@ def convert_to_blueprint(centroids, labels, width, height):
     # Can do this with mincost flow, for example
     # TODO: maybe include black?
     # TODO: maybe *don't* include white?
-    label_to_colors = default_colors()
+    label_to_colors = default_colors(len(centroids))
     
     labels = labels.reshape((height, width))
     entities = []
@@ -193,7 +193,8 @@ def convert_image_to_blueprint(image, shape, show_intermediates,
 
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] != 3:
-        raise RuntimeError("Only works on RGB images")
+        raise RuntimeError("Only works on RGB images.  Color depth: %d" %
+                           flat_image.shape[2])
     flat_image = flat_image.reshape((width * height, 3))
 
     centroids, labels = kmeans2(flat_image, clusters,
