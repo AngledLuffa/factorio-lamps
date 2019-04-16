@@ -137,7 +137,7 @@ def convert_to_blueprint(centroids, labels, width, height):
                                   i * 2 - height,
                                   neighbor["entity_number"])
                 lamps[(i, j)] = lamp
-                connection = {"entity_id": lamp["entity_id"]}
+                connection = {"entity_id": lamp["entity_number"]}
                 neighbor["connections"]["1"]["green"].append(connection)
                 entities.append(lamp)
             else:
