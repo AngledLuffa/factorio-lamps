@@ -115,20 +115,40 @@ def convert_to_blueprint(centroids, labels, width, height):
     labels = labels.reshape((height, width))
     entities = []
 
+    lamps = {}
+
     for i in range(height):
         for j in range(width):
-            color = label_to_colors[labels[i, j]]
-            combinator = build_combinator(len(entities) + 1,
-                                          j * 2 - width,
-                                          i * 2 - height,
-                                          color,
-                                          len(entities) + 2)
-            lamp = build_lamp(len(entities) + 2,
-                              j * 2 - width + 1,
-                              i * 2 - height,
-                              len(entities) + 1)
-            entities.append(combinator)
-            entities.append(lamp)
+            neighbor = None
+            if i > 0 and labels[i-1, j] == labels[i, j]:
+                neighbor = (i-1, j)
+            elif j > 0 and labels[i, j-1] == labels[i, j]:
+                neighbor = (i, j-1)
+
+            if neighbor:
+                neighbor_lamp = lamps[neighbor]
+                lamp = build_lamp(len(entities) + 1,
+                                  j * 2 - width + 1,
+                                  i * 2 - height,
+                                  neighbor_lamp["entity_number"])
+                lamps[(i, j)] = lamp
+                connection = {"entity_id": len(entities) + 1}
+                neighbor_lamp["connections"]["1"]["green"].append(connection)
+                entities.append(lamp)
+            else:
+                color = label_to_colors[labels[i, j]]
+                combinator = build_combinator(len(entities) + 1,
+                                              j * 2 - width,
+                                              i * 2 - height,
+                                              color,
+                                              len(entities) + 2)
+                lamp = build_lamp(len(entities) + 2,
+                                  j * 2 - width + 1,
+                                  i * 2 - height,
+                                  len(entities) + 1)
+                lamps[(i, j)] = lamp
+                entities.append(combinator)
+                entities.append(lamp)
 
     # add enough poles to cover the image
     pole_x = list(range(-width+3, width-2, 7))
