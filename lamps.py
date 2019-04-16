@@ -3,6 +3,9 @@ import json
 import sys
 import zlib
 
+from collections import OrderedDict
+
+import networkx as nx
 import numpy as np
 from scipy.cluster.vq import kmeans2
 from PIL import Image
@@ -32,6 +35,56 @@ def default_colors(K):
     else:
         raise RuntimeError("K must be 6 or 7")
 
+def min_cost_colors(centroids):
+    """
+    Assign colors based on min cost flow from centroid to color.
+    """
+    K = len(centroids)
+    
+    colors = OrderedDict([
+        ("signal-red", np.array((255, 0, 0))),
+        ("signal-green", np.array((0, 255, 0))),
+        ("signal-blue", np.array((0, 0, 255))),
+        ("signal-yellow", np.array((255, 255, 0))),
+        ("signal-pink", np.array((255, 0, 255))),
+        ("signal-cyan", np.array((0, 255, 255)))
+    ])
+    if K == 7:
+        colors["signal-white"] = np.array((255, 255, 255))
+    elif K != 6:
+        raise RuntimeError("K must be 6 or 7")
+
+    # We build a mincost flow as follows:
+    # source: K output
+    # edges to each color: cost 0, flow 1
+    # edges from each color to each centroid: cost L2, flow 1
+    # edges from each centroid to sink: cost 0, flow 1
+    # sink: K input
+
+    centroid_names = ["C%d" % i for i in range(len(centroids))]
+    
+    G = nx.DiGraph()
+    for c in centroid_names:
+        G.add_node(c, demand=-1)
+    for k in colors.keys():
+        G.add_node(k, demand=1)
+    for k in colors.keys():
+        for c in range(len(centroids)):
+            distance = int(np.linalg.norm(colors[k] - centroids[c]))
+            G.add_edge(centroid_names[c], k, capacity=1, weight=distance)
+
+    flow = nx.algorithms.min_cost_flow(G)
+    flow_colors = []
+    for source in sorted(flow.keys()):
+        c = None
+        for dest in flow[source]:
+            if flow[source][dest] > 0:
+                if c:
+                    # TODO: can this happen if floating point result?
+                    raise RuntimeError("Multiple colors mapped to same source")
+                flow_colors.append(dest)
+    return flow_colors
+                
 def build_combinator(entity_number, x, y, color, color_lamp):
     combinator = {
         "entity_number": entity_number,
@@ -112,11 +165,11 @@ def convert_to_blueprint(centroids, labels, width, height):
         },
     }
 
-    # TODO: arrange the centroids to be closest to the 7 colors
-    # Can do this with mincost flow, for example
     # TODO: maybe include black?
     # TODO: maybe *don't* include white?
-    label_to_colors = default_colors(len(centroids))
+    # TODO: make mincost/default an option
+    #label_to_colors = default_colors(len(centroids))
+    label_to_colors = min_cost_colors(centroids)
     
     labels = labels.reshape((height, width))
     entities = []
