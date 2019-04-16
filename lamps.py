@@ -26,6 +26,70 @@ def default_colors():
     return ["signal-red", "signal-green", "signal-blue", "signal-yellow",
             "signal-pink", "signal-cyan", "signal-white"]
 
+def build_combinator(entity_number, x, y, color, color_lamp):
+    combinator = {
+        "entity_number": entity_number,
+        "name": "constant-combinator",
+        "position": {
+            "x": x,
+            "y": y
+        },
+        "direction": 6,
+        "control_behavior": {
+            "filters": [
+                {
+                    "signal": {
+                        "type": "virtual",
+                        "name": color
+                    },
+                    "count": 1,
+                    "index": 1
+                }
+            ]
+        },
+        "connections": {
+            "1": {
+                "green": [
+                    {
+                        "entity_id": color_lamp
+                    }
+                ]
+            }
+        }
+    }
+    return combinator
+
+def build_lamp(entity_number, x, y, color_combinator):
+    lamp = {
+        "entity_number": entity_number,
+        "name": "small-lamp",
+        "position": {
+            "x": x,
+            "y": y
+        },
+        "control_behavior": {
+            "circuit_condition": {
+                "first_signal": {
+                    "type": "virtual",
+                    "name": "signal-anything"
+                },
+                "constant": 0,
+                "comparator": ">"
+            },
+            "use_colors": True
+        },
+        "connections": {
+            "1": {
+                "green": [
+                    {
+                        "entity_id": color_combinator
+                    }
+                ]
+            }
+        }
+    }
+    return lamp
+
 def convert_to_blueprint(centroids, labels, width, height):
     blueprint = {
         "blueprint": {
@@ -54,64 +118,15 @@ def convert_to_blueprint(centroids, labels, width, height):
     for i in range(height):
         for j in range(width):
             color = label_to_colors[labels[i, j]]
-            combinator = {
-                "entity_number": len(entities) + 1,
-                "name": "constant-combinator",
-                "position": {
-                    "x": j * 2 - width,
-                    "y": i * 2 - height 
-               },
-                "direction": 6,
-                "control_behavior": {
-                    "filters": [
-                        {
-                            "signal": {
-                                "type": "virtual",
-                                "name": color
-                            },
-                            "count": 1,
-                            "index": 1
-                        }
-                    ]
-                },
-                "connections": {
-                    "1": {
-                        "green": [
-                            {
-                                "entity_id": len(entities) + 2
-                            }
-                        ]
-                    }
-                }
-            }
-            lamp = {
-                "entity_number": len(entities) + 2,
-                "name": "small-lamp",
-                "position": {
-                    "x": j * 2 - width + 1,
-                    "y": i * 2 - height
-                },
-                "control_behavior": {
-                    "circuit_condition": {
-                        "first_signal": {
-                            "type": "virtual",
-                            "name": "signal-anything"
-                        },
-                        "constant": 0,
-                        "comparator": ">"
-                    },
-                    "use_colors": True
-                },
-                "connections": {
-                    "1": {
-                        "green": [
-                            {
-                                "entity_id": len(entities) + 1
-                            }
-                        ]
-                    }
-                }
-            }
+            combinator = build_combinator(len(entities) + 1,
+                                          j * 2 - width,
+                                          i * 2 - height,
+                                          color,
+                                          len(entities) + 2)
+            lamp = build_lamp(len(entities) + 2,
+                              j * 2 - width + 1,
+                              i * 2 - height,
+                              len(entities) + 1)
             entities.append(combinator)
             entities.append(lamp)
 
