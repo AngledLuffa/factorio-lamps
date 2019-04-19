@@ -246,7 +246,7 @@ def convert_image_to_blueprint(image, shape, show_intermediates,
 
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] == 4:
-        # TODO: do something smarter?
+        # ignore alpha channel
         flat_image = flat_image[:, :, :3]
     elif flat_image.shape[2] != 3:
         raise RuntimeError("Only works on RGB images.  Color depth: %d" %
