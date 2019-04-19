@@ -10,6 +10,19 @@ import numpy as np
 from scipy.cluster.vq import kmeans2
 from PIL import Image
 
+BASE_COLORS_NO_WHITE = {
+    "signal-red": np.array((255, 0, 0)),
+    "signal-green": np.array((0, 255, 0)),
+    "signal-blue": np.array((0, 0, 255)),
+    "signal-yellow": np.array((255, 255, 0)),
+    "signal-pink": np.array((255, 0, 255)),
+    "signal-cyan": np.array((0, 255, 255)),
+}
+
+BASE_COLORS = dict(BASE_COLORS_NO_WHITE)
+BASE_COLORS["signal-white"] = np.array((255, 255, 255))
+
+
 def compress_blueprint(blueprint):
     """
     Convert the given blueprint to factorio's text format.
@@ -37,12 +50,10 @@ def decompress_blueprint(blueprint):
     return json.loads(blueprint)
 
 def default_colors(K):
-    defaults = ["signal-red", "signal-green", "signal-blue", "signal-yellow",
-                "signal-pink", "signal-cyan", "signal-white"]
     if K == 7:
-        return defaults
+        return BASE_COLORS.keys()
     elif K == 6:
-        return defaults[:-1]
+        return BASE_COLORS_NO_WHITE.keys()
     else:
         raise RuntimeError("K must be 6 or 7")
 
@@ -52,16 +63,10 @@ def min_cost_colors(centroids):
     """
     K = len(centroids)
     
-    colors = OrderedDict([
-        ("signal-red", np.array((255, 0, 0))),
-        ("signal-green", np.array((0, 255, 0))),
-        ("signal-blue", np.array((0, 0, 255))),
-        ("signal-yellow", np.array((255, 255, 0))),
-        ("signal-pink", np.array((255, 0, 255))),
-        ("signal-cyan", np.array((0, 255, 255)))
-    ])
     if K == 7:
-        colors["signal-white"] = np.array((255, 255, 255))
+        colors = BASE_COLORS
+    elif K == 6:
+        colors = BASE_COLORS_NO_WHITE
     elif K != 6:
         raise RuntimeError("K must be 6 or 7")
 
@@ -96,14 +101,11 @@ def min_cost_colors(centroids):
                 flow_colors.append(dest)
     return flow_colors
                 
-def build_combinator(entity_number, x, y, color, color_lamp):
+def build_combinator(entity_number, x, y, color):
     """
     Creates a constant combinator.
 
-    The combinator emits the given color signal and starts with a
-    connection to the color_lamp.
-
-    TODO: separate out code for adding the first connection?
+    The combinator emits the given color signal.
     """
     combinator = {
         "entity_number": entity_number,
@@ -124,26 +126,14 @@ def build_combinator(entity_number, x, y, color, color_lamp):
                     "index": 1
                 }
             ]
-        },
-        "connections": {
-            "1": {
-                "green": [
-                    {
-                        "entity_id": color_lamp
-                    }
-                ]
-            }
         }
     }
     return combinator
 
-def build_lamp(entity_number, x, y, color_combinator):
+def build_lamp(entity_number, x, y):
     """
     Builds a lamp blueprint.
 
-    Uses the given x, y and adds a connection to color_combinator.
-    Note that color_combinator can be another lamp if needed
-    The reverse connection is not added, though.
     """
     lamp = {
         "entity_number": entity_number,
@@ -162,18 +152,19 @@ def build_lamp(entity_number, x, y, color_combinator):
                 "comparator": ">"
             },
             "use_colors": True
-        },
-        "connections": {
-            "1": {
-                "green": [
-                    {
-                        "entity_id": color_combinator
-                    }
-                ]
-            }
         }
     }
     return lamp
+
+def add_connection(e1, e2):
+    e2n = e2["entity_number"]
+    if "connections" not in e1:
+        e1["connections"] = { "1": { "green": [] } }
+    e1["connections"]["1"]["green"].append({"entity_id": e2n})
+
+def add_bidirectional_connection(e1, e2):
+    add_connection(e1, e2)
+    add_connection(e2, e1)    
 
 def convert_to_blueprint(centroids, labels, width, height):
     blueprint = {
@@ -213,24 +204,21 @@ def convert_to_blueprint(centroids, labels, width, height):
             if neighbor:
                 lamp = build_lamp(len(entities) + 1,
                                   j * 2 - width + 1,
-                                  i * 2 - height,
-                                  neighbor["entity_number"])
+                                  i * 2 - height)
                 lamps[(i, j)] = lamp
-                connection = {"entity_id": lamp["entity_number"]}
-                neighbor["connections"]["1"]["green"].append(connection)
+                add_bidirectional_connection(lamp, neighbor)
                 entities.append(lamp)
             else:
                 color = label_to_colors[labels[i, j]]
                 combinator = build_combinator(len(entities) + 1,
                                               j * 2 - width,
                                               i * 2 - height,
-                                              color,
-                                              len(entities) + 2)
+                                              color)
                 lamp = build_lamp(len(entities) + 2,
                                   j * 2 - width + 1,
-                                  i * 2 - height,
-                                  len(entities) + 1)
+                                  i * 2 - height)
                 lamps[(i, j)] = lamp
+                add_bidirectional_connection(combinator, lamp)
                 entities.append(combinator)
                 entities.append(lamp)
 
