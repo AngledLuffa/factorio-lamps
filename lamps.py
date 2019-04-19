@@ -11,6 +11,11 @@ from scipy.cluster.vq import kmeans2
 from PIL import Image
 
 def compress_blueprint(blueprint):
+    """
+    Convert the given blueprint to factorio's text format.
+
+    https://wiki.factorio.com/Blueprint_string_format
+    """
     blueprint = json.dumps(blueprint).encode("utf-8")
     blueprint = zlib.compress(blueprint)
     blueprint = base64.b64encode(blueprint)
@@ -18,7 +23,13 @@ def compress_blueprint(blueprint):
     return "0" + blueprint
 
 def decompress_blueprint(blueprint):
-    # https://wiki.factorio.com/Blueprint_string_format
+    """
+    Decompresses a blueprint.
+
+    Works for any blueprint, actually.
+
+    https://wiki.factorio.com/Blueprint_string_format
+    """
     # cut off the leading 0
     blueprint = blueprint[1:]
     blueprint = base64.b64decode(blueprint)
@@ -86,6 +97,14 @@ def min_cost_colors(centroids):
     return flow_colors
                 
 def build_combinator(entity_number, x, y, color, color_lamp):
+    """
+    Creates a constant combinator.
+
+    The combinator emits the given color signal and starts with a
+    connection to the color_lamp.
+
+    TODO: separate out code for adding the first connection?
+    """
     combinator = {
         "entity_number": entity_number,
         "name": "constant-combinator",
@@ -119,6 +138,13 @@ def build_combinator(entity_number, x, y, color, color_lamp):
     return combinator
 
 def build_lamp(entity_number, x, y, color_combinator):
+    """
+    Builds a lamp blueprint.
+
+    Uses the given x, y and adds a connection to color_combinator.
+    Note that color_combinator can be another lamp if needed
+    The reverse connection is not added, though.
+    """
     lamp = {
         "entity_number": entity_number,
         "name": "small-lamp",
