@@ -3,7 +3,7 @@ import json
 import sys
 import zlib
 
-from collections import OrderedDict
+from collections import deque, OrderedDict
 
 import networkx as nx
 import numpy as np
@@ -283,7 +283,56 @@ def convert_image_to_blueprint(image, shape, show_intermediates,
 
     blueprint = convert_to_blueprint(centroids, labels, width, height)
     return compress_blueprint(blueprint) 
+
+
+def convert_blueprint_to_preview(blueprint):
+    """
+    Converts one of the blueprints created above back to an image.
+
+    Useful for displaying previews and for verifying that the
+    blueprint was sensible.
+    """
+    entities = decompress_blueprint(blueprint)["blueprint"]["entities"]
+    horizon = deque()
+
+    entity_map = {}
+    entity_colors = {}
+    for e in entities:
+        entity_map[e["entity_number"]] = e
+        if e["name"] == "constant-combinator":
+            horizon.append(e["entity_number"])
+            color = e["control_behavior"]["filters"][0]["signal"]["name"]
+            entity_colors[e["entity_number"]] = color
+
+    while len(horizon) > 0:
+        e = horizon.popleft()
+        color = entity_colors[e]
+        for n in entity_map[e]["connections"]["1"]["green"]:
+            if n["entity_id"] not in entity_colors:
+                horizon.append(n["entity_id"])
+                entity_colors[n["entity_id"]] = color
     
+    lamps = [e for e in entities if e["name"] == "small-lamp"]
+    min_x = min(e["position"]["x"] for e in lamps)
+    min_y = min(e["position"]["y"] for e in lamps)
+    max_x = max(e["position"]["x"] for e in lamps)
+    max_y = max(e["position"]["y"] for e in lamps)
+
+    width = max_x - min_x + 2
+    height = max_y - min_y + 2
+
+    image = np.zeros((height, width, 3), dtype=np.int8)
+    for lamp in lamps:
+        x = lamp["position"]["x"] - min_x
+        y = lamp["position"]["y"] - min_y
+        color = entity_colors[lamp["entity_number"]]
+        color = BASE_COLORS[color]
+        image[y,   x, :] = color
+        image[y+1, x, :] = color
+        image[y,   x+1, :] = color
+        image[y+1, x+1, :] = color
+
+    return Image.fromarray(image, "RGB")
         
 if __name__ == '__main__':
     path = sys.argv[1]
@@ -300,3 +349,6 @@ if __name__ == '__main__':
     print
     print("BLUEPRINT")
     print(bp)
+
+    preview = convert_blueprint_to_preview(bp)
+    preview.show()
