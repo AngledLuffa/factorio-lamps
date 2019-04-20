@@ -318,8 +318,8 @@ def convert_blueprint_to_preview(blueprint):
     max_x = max(e["position"]["x"] for e in lamps)
     max_y = max(e["position"]["y"] for e in lamps)
 
-    width = max_x - min_x + 2
-    height = max_y - min_y + 2
+    width = max_x - min_x + 6
+    height = max_y - min_y + 6
 
     image = np.zeros((height, width, 3), dtype=np.int8)
     for lamp in lamps:
@@ -327,10 +327,10 @@ def convert_blueprint_to_preview(blueprint):
         y = lamp["position"]["y"] - min_y
         color = entity_colors[lamp["entity_number"]]
         color = BASE_COLORS[color]
-        image[y,   x, :] = color
-        image[y+1, x, :] = color
-        image[y,   x+1, :] = color
-        image[y+1, x+1, :] = color
+        image[y+2, x+2, :] = color
+        image[y+3, x+2, :] = color
+        image[y+2, x+3, :] = color
+        image[y+3, x+3, :] = color
 
     return Image.fromarray(image, "RGB")
         
