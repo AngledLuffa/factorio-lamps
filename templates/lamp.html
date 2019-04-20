@@ -1,0 +1,27 @@
+<!doctype html>
+<h1>Upload Image</h1>
+<form method=post enctype=multipart/form-data>
+  <input type=file name=file>
+  <input type=submit value=Upload>
+</form>
+
+{% if bp %}
+  <h2>Blueprint</h2>
+  <textarea rows="10" cols="50" readonly id="blueprint">{{ bp }}</textarea>
+<br>
+  <button onclick="myFunction()">Copy blueprint to clipboard</button>
+
+<script>
+function myFunction() {
+  var copyText = document.getElementById("blueprint");
+  copyText.select();
+  document.execCommand("copy");
+}
+</script>
+
+{% endif %}
+{% if preview %}
+  <h2>Preview</h2>
+  <img src="data:image/png;base64,{{ preview }}" alt="preview.png">
+{% endif %}
+
