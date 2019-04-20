@@ -1,0 +1,4 @@
+Notes for when I inevitably forget how to do this:
+
+set GIT_SSH=plink.exe
+
