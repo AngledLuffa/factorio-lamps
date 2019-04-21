@@ -11,6 +11,7 @@ from scipy.cluster.vq import kmeans2
 from PIL import Image
 
 SHOW_INTERMEDIATES = False
+SHOW_PREVIEW = True
 
 BASE_COLORS = {
     "signal-red": np.array((255, 0, 0)),
@@ -368,5 +369,5 @@ if __name__ == '__main__':
     print(bp)
 
     preview = convert_blueprint_to_preview(bp, BASE_COLORS)
-    if SHOW_INTERMEDIATES:
+    if SHOW_PREVIEW:
         preview.show()
