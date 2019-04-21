@@ -246,18 +246,8 @@ def convert_to_blueprint(centroids, labels, width, height):
     
     return blueprint
 
-def convert_image_to_blueprint(image, shape, show_intermediates,
-                               clusters):
-    print("Original image size: %s" % str(image.size))
-    if show_intermediates:
-        image.show()
-    if shape:
-        width, height = shape
-        print("Resizing to %d, %d" % (width, height))
-        image = image.resize((width, height))
-    else:
-        width, height = image.size
-
+def convert_image_to_blueprint(image, show_intermediates, clusters):
+    width, height = image.size
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] == 4:
         # ignore alpha channel
@@ -333,7 +323,48 @@ def convert_blueprint_to_preview(blueprint):
         image[y+3, x+3, :] = color
 
     return Image.fromarray(image, "RGB")
-        
+
+def resize_image(image, shape=None, lamps=None, default=False):
+    print("Original image size: %s" % str(image.size))
+    if shape:
+        if lamps or default:
+            raise RuntimeError("Can only specify one resize method")
+        new_width, new_height = shape
+    elif default:
+        if lamps:
+            raise RuntimeError("Can only specify one resize method")
+        width, height = image.size
+        if width > height:
+            new_width = 90
+            new_height = int(height / width * new_width)
+        elif height > width:
+            new_height = 90
+            new_width = int(width / height * new_height)
+        else:
+            new_height = 90
+            new_width = 90
+    elif lamps:
+        width, height = image.size
+        max_d = max(width, height)
+        min_d = min(width, height)
+        scaled_min = (lamps / (max_d / min_d)) ** 0.5
+        scaled_max = int(scaled_min * max_d / min_d)
+        scaled_min = int(scaled_min)
+        if width > height:
+            new_width = scaled_max
+            new_height = scaled_min
+        else:
+            new_height = scaled_max
+            new_width = scaled_min
+    else:
+        raise RuntimeError("No resize method specified")
+
+    new_width = max(1, new_width)
+    new_height = max(1, new_height)
+    print("Resizing to %d, %d" % (new_width, new_height))
+    image = image.resize((new_width, new_height))
+    return image
+            
 if __name__ == '__main__':
     path = sys.argv[1]
 
@@ -342,10 +373,13 @@ if __name__ == '__main__':
         width = int(sys.argv[2])
         height = int(sys.argv[3])
         shape = (width, height)
-    else:
-        shape = None
+        image = resize_image(image, shape=shape)
 
-    bp = convert_image_to_blueprint(image, shape, False, 7)
+    show_intermediates = False
+    if show_intermediates:
+        image.show()
+
+    bp = convert_image_to_blueprint(image, show_intermediates, 7)
     print
     print("BLUEPRINT")
     print(bp)
