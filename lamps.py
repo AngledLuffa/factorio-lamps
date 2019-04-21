@@ -23,6 +23,26 @@ BASE_COLORS = {
     "signal-white": np.array((255, 255, 255)),
 }
 
+EXPANDED_LAMP_COLORS = {
+    "signal-white": np.array((255, 255, 255)),
+    "signal-light-grey": np.array((228, 228, 228)),
+    "signal-grey": np.array((136, 136, 136)),
+    "signal-black": np.array((34, 34, 34)),
+    "signal-pink": np.array((255, 167, 209)),
+    "signal-red": np.array((229, 0, 0)),
+    "signal-orange": np.array((229, 149, 0)),
+    "signal-brown": np.array((160, 106, 66)),
+    "signal-yellow": np.array((229, 217, 0)),
+    "signal-light-green": np.array((148, 224, 68)),
+    "signal-green": np.array((2, 190, 1)),
+    "signal-cyan": np.array((0, 211, 221)),
+    "signal-light-blue": np.array((0, 131, 199)),
+    "signal-blue": np.array((0, 0, 234)),
+    "signal-light-purple": np.array((207, 110, 228)),
+    "signal-dark-purple": np.array((130, 0, 128)),
+}
+
+
 def compress_blueprint(blueprint):
     """
     Convert the given blueprint to factorio's text format.
