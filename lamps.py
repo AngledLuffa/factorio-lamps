@@ -385,4 +385,5 @@ if __name__ == '__main__':
     print(bp)
 
     preview = convert_blueprint_to_preview(bp)
-    preview.show()
+    if show_intermediates:
+        preview.show()
