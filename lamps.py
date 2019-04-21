@@ -10,6 +10,8 @@ import numpy as np
 from scipy.cluster.vq import kmeans2
 from PIL import Image
 
+SHOW_INTERMEDIATES = False
+
 BASE_COLORS_NO_WHITE = {
     "signal-red": np.array((255, 0, 0)),
     "signal-green": np.array((0, 255, 0)),
@@ -246,7 +248,7 @@ def convert_to_blueprint(centroids, labels, width, height):
     
     return blueprint
 
-def convert_image_to_blueprint(image, show_intermediates, clusters):
+def convert_image_to_blueprint(image, clusters):
     width, height = image.size
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] == 4:
@@ -268,7 +270,7 @@ def convert_image_to_blueprint(image, show_intermediates, clusters):
     kmeans_image = np.array(kmeans_image, dtype=np.int8)
 
     new_image = Image.fromarray(kmeans_image, "RGB")
-    if show_intermediates:
+    if SHOW_INTERMEDIATES:
         new_image.show()
 
     blueprint = convert_to_blueprint(centroids, labels, width, height)
@@ -375,15 +377,14 @@ if __name__ == '__main__':
         shape = (width, height)
         image = resize_image(image, shape=shape)
 
-    show_intermediates = False
-    if show_intermediates:
+    if SHOW_INTERMEDIATES:
         image.show()
 
-    bp = convert_image_to_blueprint(image, show_intermediates, 7)
+    bp = convert_image_to_blueprint(image, 7)
     print
     print("BLUEPRINT")
     print(bp)
 
     preview = convert_blueprint_to_preview(bp)
-    if show_intermediates:
+    if SHOW_INTERMEDIATES:
         preview.show()

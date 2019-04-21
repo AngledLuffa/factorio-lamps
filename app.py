@@ -44,7 +44,7 @@ def process_lamps():
                 height = 60
             image = lamps.resize_image(image, shape=(width, height))
 
-        bp = lamps.convert_image_to_blueprint(image, False, 7)
+        bp = lamps.convert_image_to_blueprint(image, 7)
 
         preview_image = lamps.convert_blueprint_to_preview(bp)
         f = io.BytesIO()
