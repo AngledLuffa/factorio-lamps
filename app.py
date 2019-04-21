@@ -23,7 +23,28 @@ def process_lamps():
             return redirect(request.url)
 
         image = Image.open(request.files['file'])
-        bp = lamps.convert_image_to_blueprint(image, (90, 60), False, 7)
+
+        resize = request.form.get('resize', 'default')
+        if resize == 'default':
+            image = lamps.resize_image(image, default=True)
+        elif resize == 'lamps':
+            try:
+                num_lamps = int(request.form.get('lamps', '5000'))
+            except ValueError:
+                num_lamps = 5000
+            image = lamps.resize_image(image, lamps=num_lamps)
+        elif resize == 'size':
+            try:
+                width = int(request.form.get('width', '90'))
+            except ValueError:
+                width = 90
+            try:
+                height = int(request.form.get('height', '60'))
+            except ValueError:
+                height = 60
+            image = lamps.resize_image(image, shape=(width, height))
+
+        bp = lamps.convert_image_to_blueprint(image, False, 7)
 
         preview_image = lamps.convert_blueprint_to_preview(bp)
         f = io.BytesIO()

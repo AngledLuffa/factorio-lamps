@@ -2,7 +2,23 @@
 <h1>Upload Image</h1>
 <form method=post enctype=multipart/form-data>
   <input type=file name=file>
+<br>
+<fieldset>
+  <legend>Size Options</legend>
+  <input type=radio name=resize value=lamps> Fixed number of lamps:
+  <input type=number name=lamps style="width: 7em" value=5000>
+<br>
+  <input type=radio name=resize value=size> Specify width and height:
+  <input type=number name=width style="width: 7em" value=90> x
+  <input type=number name=height style="width: 7em" value=60>
+<br>
+  <input type=radio name=resize value=default checked> Default scaling
+<br>
+  <input type=radio name=resize value=none> No resizing (warning: likely to be huge!)
+</fieldset>
+<br>
   <input type=submit value=Upload>
+<br>
 </form>
 
 {% if bp %}
