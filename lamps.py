@@ -12,18 +12,15 @@ from PIL import Image
 
 SHOW_INTERMEDIATES = False
 
-BASE_COLORS_NO_WHITE = {
+BASE_COLORS = {
     "signal-red": np.array((255, 0, 0)),
     "signal-green": np.array((0, 255, 0)),
     "signal-blue": np.array((0, 0, 255)),
     "signal-yellow": np.array((255, 255, 0)),
     "signal-pink": np.array((255, 0, 255)),
     "signal-cyan": np.array((0, 255, 255)),
+    "signal-white": np.array((255, 255, 255)),
 }
-
-BASE_COLORS = dict(BASE_COLORS_NO_WHITE)
-BASE_COLORS["signal-white"] = np.array((255, 255, 255))
-
 
 def compress_blueprint(blueprint):
     """
@@ -51,26 +48,12 @@ def decompress_blueprint(blueprint):
     blueprint = zlib.decompress(blueprint)
     return json.loads(blueprint)
 
-def default_colors(K):
-    if K == 7:
-        return BASE_COLORS.keys()
-    elif K == 6:
-        return BASE_COLORS_NO_WHITE.keys()
-    else:
-        raise RuntimeError("K must be 6 or 7")
-
-def min_cost_colors(centroids):
+def min_cost_colors(centroids, colors, color_map):
     """
     Assign colors based on min cost flow from centroid to color.
     """
     K = len(centroids)
-    
-    if K == 7:
-        colors = BASE_COLORS
-    elif K == 6:
-        colors = BASE_COLORS_NO_WHITE
-    elif K != 6:
-        raise RuntimeError("K must be 6 or 7")
+    assert K == len(colors)
 
     # We build a mincost flow as follows:
     # source: K output
@@ -84,11 +67,10 @@ def min_cost_colors(centroids):
     G = nx.DiGraph()
     for c in centroid_names:
         G.add_node(c, demand=-1)
-    for k in colors.keys():
+    for k in colors:
         G.add_node(k, demand=1)
-    for k in colors.keys():
         for c in range(len(centroids)):
-            distance = int(np.linalg.norm(colors[k] - centroids[c]))
+            distance = int(np.linalg.norm(color_map[k] - centroids[c]))
             G.add_edge(centroid_names[c], k, capacity=1, weight=distance)
 
     flow = nx.algorithms.min_cost_flow(G)
@@ -168,7 +150,7 @@ def add_bidirectional_connection(e1, e2):
     add_connection(e1, e2)
     add_connection(e2, e1)    
 
-def convert_to_blueprint(centroids, labels, width, height):
+def convert_to_blueprint(centroids, labels, width, height, colors, color_map):
     blueprint = {
         "blueprint": {
             "icons": [
@@ -187,8 +169,7 @@ def convert_to_blueprint(centroids, labels, width, height):
     # TODO: maybe include black?
     # TODO: maybe *don't* include white?
     # TODO: make mincost/default an option
-    #label_to_colors = default_colors(len(centroids))
-    label_to_colors = min_cost_colors(centroids)
+    label_to_colors = min_cost_colors(centroids, colors, color_map)
     
     labels = labels.reshape((height, width))
     entities = []
@@ -248,7 +229,7 @@ def convert_to_blueprint(centroids, labels, width, height):
     
     return blueprint
 
-def convert_image_to_blueprint(image, clusters):
+def convert_image_to_blueprint(image, colors, color_map):
     width, height = image.size
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] == 4:
@@ -259,7 +240,7 @@ def convert_image_to_blueprint(image, clusters):
                            flat_image.shape[2])
     flat_image = flat_image.reshape((width * height, 3))
 
-    centroids, labels = kmeans2(flat_image, clusters,
+    centroids, labels = kmeans2(flat_image, len(colors),
                                 iter=50, minit='points')
 
     # centroids will be a Kx3 array representing colors
@@ -273,11 +254,12 @@ def convert_image_to_blueprint(image, clusters):
     if SHOW_INTERMEDIATES:
         new_image.show()
 
-    blueprint = convert_to_blueprint(centroids, labels, width, height)
+    blueprint = convert_to_blueprint(centroids, labels, width, height,
+                                     colors, color_map)
     return compress_blueprint(blueprint) 
 
 
-def convert_blueprint_to_preview(blueprint):
+def convert_blueprint_to_preview(blueprint, color_map):
     """
     Converts one of the blueprints created above back to an image.
 
@@ -318,7 +300,7 @@ def convert_blueprint_to_preview(blueprint):
         x = lamp["position"]["x"] - min_x
         y = lamp["position"]["y"] - min_y
         color = entity_colors[lamp["entity_number"]]
-        color = BASE_COLORS[color]
+        color = color_map[color]
         image[y+2, x+2, :] = color
         image[y+3, x+2, :] = color
         image[y+2, x+3, :] = color
@@ -380,11 +362,11 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp = convert_image_to_blueprint(image, 7)
+    bp = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS)
     print
     print("BLUEPRINT")
     print(bp)
 
-    preview = convert_blueprint_to_preview(bp)
+    preview = convert_blueprint_to_preview(bp, BASE_COLORS)
     if SHOW_INTERMEDIATES:
         preview.show()
