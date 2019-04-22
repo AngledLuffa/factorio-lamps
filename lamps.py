@@ -294,12 +294,10 @@ def convert_image_to_blueprint(image, colors, color_map):
     kmeans_image = np.array(kmeans_image, dtype=np.int8)
 
     new_image = Image.fromarray(kmeans_image, "RGB")
-    if SHOW_INTERMEDIATES:
-        new_image.show()
 
     blueprint = convert_to_blueprint(centroids, labels, width, height,
                                      colors, color_map)
-    return compress_blueprint(blueprint) 
+    return compress_blueprint(blueprint), new_image
 
 
 def convert_blueprint_to_preview(blueprint, color_map):
@@ -405,7 +403,9 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS)
+    bp, new_image = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS)
+    if SHOW_INTERMEDIATES:
+        new_image.show()
     print
     print("BLUEPRINT")
     print(bp)

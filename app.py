@@ -50,7 +50,8 @@ def process_lamps():
             color_map = lamps.EXPANDED_LAMP_COLORS
         else:
             color_map = lamps.BASE_COLORS
-        bp = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map)
+
+        bp, new_image = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map)
 
         preview_image = lamps.convert_blueprint_to_preview(bp, color_map)
         f = io.BytesIO()
