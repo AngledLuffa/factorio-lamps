@@ -48,6 +48,8 @@ def process_lamps():
             color_map = lamps.BASE_COLORS
         elif colors == 'expanded':
             color_map = lamps.EXPANDED_LAMP_COLORS
+        elif colors == 'dectorio':
+            color_map = lamps.DECTORIO_LAMP_COLORS
         else:
             color_map = lamps.BASE_COLORS
 
