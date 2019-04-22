@@ -21,6 +21,7 @@ BASE_COLORS = {
     "signal-pink": np.array((255, 0, 255)),
     "signal-cyan": np.array((0, 255, 255)),
     "signal-white": np.array((255, 255, 255)),
+    "signal-black": np.array((64, 64, 64)),
 }
 
 EXPANDED_LAMP_COLORS = {
@@ -128,7 +129,7 @@ def min_cost_colors(centroids, colors, color_map):
                 flow_colors.append(dest)
     return flow_colors
                 
-def build_combinator(entity_number, x, y, color):
+def build_combinator(entity_number, x, y, color, enabled):
     """
     Creates a constant combinator.
 
@@ -149,7 +150,7 @@ def build_combinator(entity_number, x, y, color):
                         "type": "virtual",
                         "name": color
                     },
-                    "count": 1,
+                    "count": 1 if enabled else 0,
                     "index": 1
                 }
             ]
@@ -193,7 +194,8 @@ def add_bidirectional_connection(e1, e2):
     add_connection(e1, e2)
     add_connection(e2, e1)    
 
-def convert_to_blueprint(centroids, labels, width, height, colors, color_map):
+def convert_to_blueprint(centroids, labels, width, height,
+                         colors, color_map, disable_black):
     blueprint = {
         "blueprint": {
             "icons": [
@@ -236,10 +238,11 @@ def convert_to_blueprint(centroids, labels, width, height, colors, color_map):
                 entities.append(lamp)
             else:
                 color = label_to_colors[labels[i, j]]
+                enabled = not (color == 'signal_black' and disable_black)
                 combinator = build_combinator(len(entities) + 1,
                                               j * 2 - width,
                                               i * 2 - height,
-                                              color)
+                                              color, enabled)
                 lamp = build_lamp(len(entities) + 2,
                                   j * 2 - width + 1,
                                   i * 2 - height)
@@ -272,7 +275,7 @@ def convert_to_blueprint(centroids, labels, width, height, colors, color_map):
     
     return blueprint
 
-def convert_image_to_blueprint(image, colors, color_map):
+def convert_image_to_blueprint(image, colors, color_map, disable_black):
     width, height = image.size
     flat_image = np.asarray(image, dtype=np.float32)
     if flat_image.shape[2] == 4:
@@ -296,7 +299,7 @@ def convert_image_to_blueprint(image, colors, color_map):
     new_image = Image.fromarray(kmeans_image, "RGB")
 
     blueprint = convert_to_blueprint(centroids, labels, width, height,
-                                     colors, color_map)
+                                     colors, color_map, disable_black)
     return compress_blueprint(blueprint), new_image
 
 
@@ -403,7 +406,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp, new_image = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS)
+    bp, new_image = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     print

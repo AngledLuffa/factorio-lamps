@@ -44,16 +44,23 @@ def process_lamps():
             image = lamps.resize_image(image, shape=(width, height))
 
         colors = request.form.get('color', 'base')
-        if colors == 'base':
-            color_map = lamps.BASE_COLORS
-        elif colors == 'expanded':
+        if colors == 'expanded':
             color_map = lamps.EXPANDED_LAMP_COLORS
+            colors_used = color_map.keys()
+            disable_black = False
         elif colors == 'dectorio':
             color_map = lamps.DECTORIO_LAMP_COLORS
-        else:
+            colors_used = color_map.keys()
+            disable_black = False
+        else:   # include 'base' or undefined
             color_map = lamps.BASE_COLORS
+            colors_used = color_map.keys()
+            disable_black = True
+            if !bool(request.form.get('base_black', None)):
+                colors_used = list(colors_used)
+                colors_used.remove('signal_black')
 
-        bp, new_image = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map)
+        bp, new_image = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map, disable_black)
 
         preview_image = lamps.convert_blueprint_to_preview(bp, color_map)
         f = io.BytesIO()
