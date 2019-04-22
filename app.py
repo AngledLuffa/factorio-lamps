@@ -58,9 +58,9 @@ def process_lamps():
             disable_black = True
             if not bool(request.form.get('base_black', None)):
                 colors_used = list(colors_used)
-                colors_used.remove('signal_black')
+                colors_used.remove('signal-black')
 
-        bp, new_image = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map, disable_black)
+        bp, new_image = lamps.convert_image_to_blueprint(image, colors_used, color_map, disable_black)
 
         preview_image = lamps.convert_blueprint_to_preview(bp, color_map)
         f = io.BytesIO()
