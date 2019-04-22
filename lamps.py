@@ -42,6 +42,28 @@ EXPANDED_LAMP_COLORS = {
     "signal-dark-purple": np.array((130, 0, 128)),
 }
 
+DECTORIO_LAMP_COLORS = {
+    "signal-red": np.array((255, 40, 25)),
+    "signal-orange": np.array((252, 112, 56)),
+    "signal-tangerine": np.array((255, 147, 35)),
+    "signal-yellow": np.array((255, 244, 68)),
+    "signal-green": np.array((0, 242, 43)),
+    "signal-cyan": np.array((2, 249, 255)),
+    "signal-aqua": np.array((12, 170, 252)),
+    "signal-blue": np.array((17, 89, 249)),
+    "signal-purple": np.array((165, 96, 252)),
+    "signal-pink": np.array((255, 107, 252)),
+    "signal-maroon": np.array((127, 0, 0)),
+    "signal-brown": np.array((153, 99, 35)),
+    "signal-olive": np.array((127, 127, 2)),
+    "signal-emerald": np.array((43, 137, 63)),
+    "signal-teal": np.array((71, 153, 142)),
+    "signal-navy": np.array((0, 0, 127)),
+    "signal-violet": np.array((142, 30, 178)),
+    "signal-black": np.array((56, 33, 142)),
+    "signal-grey": np.array((204, 204, 204)),
+    "signal-white": np.array((255, 255, 255)),
+}
 
 def compress_blueprint(blueprint):
     """
