@@ -19,7 +19,6 @@ def process_lamps():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No image uploaded')
             return redirect(request.url)
 
         image = Image.open(request.files['file'])
@@ -44,9 +43,16 @@ def process_lamps():
                 height = 60
             image = lamps.resize_image(image, shape=(width, height))
 
-        bp = lamps.convert_image_to_blueprint(image, 7)
+        colors = request.form.get('color', 'base')
+        if colors == 'base':
+            color_map = lamps.BASE_COLORS
+        elif colors == 'expanded':
+            color_map = lamps.EXPANDED_LAMP_COLORS
+        else:
+            color_map = lamps.BASE_COLORS
+        bp = lamps.convert_image_to_blueprint(image, color_map.keys(), color_map)
 
-        preview_image = lamps.convert_blueprint_to_preview(bp)
+        preview_image = lamps.convert_blueprint_to_preview(bp, color_map)
         f = io.BytesIO()
         preview_image.save(f, format="PNG")
         preview = base64.b64encode(f.getvalue())
