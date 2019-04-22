@@ -56,7 +56,7 @@ def process_lamps():
             color_map = lamps.BASE_COLORS
             colors_used = color_map.keys()
             disable_black = True
-            if !bool(request.form.get('base_black', None)):
+            if not bool(request.form.get('base_black', None)):
                 colors_used = list(colors_used)
                 colors_used.remove('signal_black')
 
