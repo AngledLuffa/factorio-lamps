@@ -2,3 +2,6 @@ Notes for when I inevitably forget how to do this:
 
 set GIT_SSH=plink.exe
 
+B&W Rose downloaded from here:
+https://www.pexels.com/photo/black-and-white-nature-flowers-close-up-view-57905/
+
