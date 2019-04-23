@@ -275,12 +275,20 @@ def convert_to_blueprint(pixel_colors, width, height,
 def convert_image_to_blueprint(image, colors, color_map, disable_black):
     width, height = image.size
     flat_image = np.asarray(image, dtype=np.float32)
+    if len(flat_image.shape) == 2:
+        # BW image
+        flat_image = np.expand_dims(flat_image, 2)
+    elif len(flat_image.shape) != 3:
+        raise RuntimeError("Unknown matrix shape: %s" % str(flat_image.shape))
+    if flat_image.shape[2] == 1:
+        print("Converting BW by stacking 3 copies.  Efficiency be damned")
+        flat_image = np.tile(flat_image, (1, 1, 3))
     if flat_image.shape[2] == 4:
         # ignore alpha channel
         flat_image = flat_image[:, :, :3]
     elif flat_image.shape[2] != 3:
-        raise RuntimeError("Only works on RGB images.  Color depth: %d" %
-                           flat_image.shape[2])
+        raise RuntimeError("Only works on BW or RGB(a) images.  "
+                           "Color depth: %d" % flat_image.shape[2])
     flat_image = flat_image.reshape((width * height, 3))
 
     centroids, labels = kmeans2(flat_image, len(colors),
