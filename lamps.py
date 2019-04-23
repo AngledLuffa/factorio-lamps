@@ -194,7 +194,7 @@ def add_bidirectional_connection(e1, e2):
     add_connection(e1, e2)
     add_connection(e2, e1)    
 
-def convert_to_blueprint(labels, label_to_colors, width, height,
+def convert_to_blueprint(pixel_colors, width, height,
                          disable_black):
     blueprint = {
         "blueprint": {
@@ -217,9 +217,9 @@ def convert_to_blueprint(labels, label_to_colors, width, height,
     for i in range(height):
         for j in range(width):
             neighbor = None
-            if i > 0 and labels[i-1, j] == labels[i, j]:
+            if i > 0 and pixel_colors[i-1, j] == pixel_colors[i, j]:
                 neighbor = lamps[(i-1, j)]
-            elif j > 0 and labels[i, j-1] == labels[i, j]:
+            elif j > 0 and pixel_colors[i, j-1] == pixel_colors[i, j]:
                 neighbor = lamps[(i, j-1)]
 
             if neighbor:
@@ -230,7 +230,7 @@ def convert_to_blueprint(labels, label_to_colors, width, height,
                 add_bidirectional_connection(lamp, neighbor)
                 entities.append(lamp)
             else:
-                color = label_to_colors[labels[i, j]]
+                color = pixel_colors[i, j]
                 enabled = not (color == 'signal-black' and disable_black)
                 combinator = build_combinator(len(entities) + 1,
                                               j * 2 - width,
@@ -296,9 +296,10 @@ def convert_image_to_blueprint(image, colors, color_map, disable_black):
 
     # TODO: make mincost/default an option
     label_to_colors = min_cost_colors(centroids, colors, color_map)
-    labels = labels.reshape((height, width))
+    pixel_colors = np.array([label_to_colors[x] for x in labels])
+    pixel_colors = pixel_colors.reshape((height, width))
 
-    blueprint = convert_to_blueprint(labels, label_to_colors, width, height,
+    blueprint = convert_to_blueprint(pixel_colors, width, height,
                                      disable_black)
     return compress_blueprint(blueprint), new_image
 
