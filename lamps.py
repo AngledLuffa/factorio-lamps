@@ -211,7 +211,6 @@ def convert_to_blueprint(centroids, labels, width, height,
         },
     }
 
-    # TODO: maybe *don't* include white?
     # TODO: make mincost/default an option
     label_to_colors = min_cost_colors(centroids, colors, color_map)
     
