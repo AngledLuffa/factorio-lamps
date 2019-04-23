@@ -11,6 +11,7 @@ from scipy.cluster.vq import kmeans2
 from PIL import Image
 
 SHOW_INTERMEDIATES = False
+SHOW_BLUEPRINT = False
 SHOW_PREVIEW = True
 
 BASE_COLORS = {
@@ -410,9 +411,10 @@ if __name__ == '__main__':
     bp, new_image = convert_image_to_blueprint(image, BASE_COLORS.keys(), BASE_COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
-    print
-    print("BLUEPRINT")
-    print(bp)
+    if SHOW_BLUEPRINT:
+        print
+        print("BLUEPRINT")
+        print(bp)
 
     preview = convert_blueprint_to_preview(bp, BASE_COLORS)
     if SHOW_PREVIEW:
