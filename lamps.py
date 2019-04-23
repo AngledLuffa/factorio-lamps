@@ -194,8 +194,8 @@ def add_bidirectional_connection(e1, e2):
     add_connection(e1, e2)
     add_connection(e2, e1)    
 
-def convert_to_blueprint(centroids, labels, width, height,
-                         colors, color_map, disable_black):
+def convert_to_blueprint(labels, label_to_colors, width, height,
+                         disable_black):
     blueprint = {
         "blueprint": {
             "icons": [
@@ -211,12 +211,7 @@ def convert_to_blueprint(centroids, labels, width, height,
         },
     }
 
-    # TODO: make mincost/default an option
-    label_to_colors = min_cost_colors(centroids, colors, color_map)
-    
-    labels = labels.reshape((height, width))
     entities = []
-
     lamps = {}
 
     for i in range(height):
@@ -236,7 +231,7 @@ def convert_to_blueprint(centroids, labels, width, height,
                 entities.append(lamp)
             else:
                 color = label_to_colors[labels[i, j]]
-                enabled = not (color == 'signal_black' and disable_black)
+                enabled = not (color == 'signal-black' and disable_black)
                 combinator = build_combinator(len(entities) + 1,
                                               j * 2 - width,
                                               i * 2 - height,
@@ -250,10 +245,13 @@ def convert_to_blueprint(centroids, labels, width, height,
                 entities.append(lamp)
 
     # add enough poles to cover the image
-    pole_x = list(range(-width+3, width-2, 7))
+    pole_x_start = -width+3
+    if pole_x_start % 2 == 1:
+        pole_x_start = pole_x_start - 1
+    pole_x = list(range(pole_x_start, width-2, 8))
     if pole_x[-1] < width - 3:
         pole_x.append(width - 3)
-    pole_y = list(range(-height+3, height-2, 6))
+    pole_y = list(range(-height+3, height-2, 8))
     if pole_y[-1] < height - 3:
         pole_y.append(height - 3)
 
@@ -296,8 +294,12 @@ def convert_image_to_blueprint(image, colors, color_map, disable_black):
 
     new_image = Image.fromarray(kmeans_image, "RGB")
 
-    blueprint = convert_to_blueprint(centroids, labels, width, height,
-                                     colors, color_map, disable_black)
+    # TODO: make mincost/default an option
+    label_to_colors = min_cost_colors(centroids, colors, color_map)
+    labels = labels.reshape((height, width))
+
+    blueprint = convert_to_blueprint(labels, label_to_colors, width, height,
+                                     disable_black)
     return compress_blueprint(blueprint), new_image
 
 
