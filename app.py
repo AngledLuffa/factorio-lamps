@@ -64,7 +64,7 @@ def process_lamps():
                 colors_used = list(colors_used)
                 colors_used.remove('signal-black')
 
-        bp, new_image = lamps.convert_image_to_blueprint(image, colors_used, color_map, disable_black)
+        bp, new_image = lamps.convert_image_to_blueprint_kmeans(image, colors_used, color_map, disable_black)
 
         preview_image = lamps.convert_blueprint_to_preview(bp, color_map)
         f = io.BytesIO()
