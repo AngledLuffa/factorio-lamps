@@ -22,7 +22,7 @@ BASE_COLORS = {
     "signal-pink": np.array((255, 0, 255)),
     "signal-cyan": np.array((0, 255, 255)),
     "signal-white": np.array((255, 255, 255)),
-    "signal-black": np.array((64, 64, 64)),
+    "signal-black": np.array((0, 0, 0)),
 }
 
 EXPANDED_LAMP_COLORS = {
@@ -218,9 +218,9 @@ def convert_to_blueprint(pixel_colors, width, height,
     for i in range(height):
         for j in range(width):
             neighbor = None
-            if i > 0 and pixel_colors[i-1, j] == pixel_colors[i, j]:
+            if i > 0 and pixel_colors[i-1][j] == pixel_colors[i][j]:
                 neighbor = lamps[(i-1, j)]
-            elif j > 0 and pixel_colors[i, j-1] == pixel_colors[i, j]:
+            elif j > 0 and pixel_colors[i][j-1] == pixel_colors[i][j]:
                 neighbor = lamps[(i, j-1)]
 
             if neighbor:
@@ -231,7 +231,7 @@ def convert_to_blueprint(pixel_colors, width, height,
                 add_bidirectional_connection(lamp, neighbor)
                 entities.append(lamp)
             else:
-                color = pixel_colors[i, j]
+                color = pixel_colors[i][j]
                 enabled = not (color == 'signal-black' and disable_black)
                 combinator = build_combinator(len(entities) + 1,
                                               j * 2 - width,
@@ -290,6 +290,24 @@ def convert_image_to_array(image):
                            "Color depth: %d" % image.shape[2])
     return image
 
+def convert_image_to_blueprint_nearest(image, colors, color_map, disable_black):
+    colors = list(colors)
+    width, height = image.size
+    image = convert_image_to_array(image)
+    pixel_colors = []
+    for i in range(height):
+        pixel_colors.append([])
+        row = pixel_colors[-1]
+        for j in range(width):
+            distances = [np.linalg.norm(color_map[color] - image[i, j, :])
+                         for color in colors]
+            row.append(colors[np.argmin(distances)])
+            
+    blueprint = convert_to_blueprint(pixel_colors, width, height,
+                                     disable_black)
+    return compress_blueprint(blueprint), None
+
+            
 def convert_image_to_blueprint_kmeans(image, colors, color_map, disable_black):
     width, height = image.size
     flat_image = convert_image_to_array(image)
