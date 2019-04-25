@@ -5,20 +5,20 @@ import os
 import lamps
 from PIL import Image
 from flask import Flask, flash, redirect, render_template, request, send_from_directory, url_for
-app = Flask(__name__)
-app.config['MAX_CONTENT_PATH'] = 32 * 1024 * 1024
+application = Flask(__name__)
+application.config['MAX_CONTENT_PATH'] = 32 * 1024 * 1024
 
-@app.route('/')
+@application.route('/')
 def hello_world():
     return render_template('index.html')
 
-@app.route('/favicon.ico')
+@application.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
+    return send_from_directory(os.path.join(application.root_path, 'static'),
                                'favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
 
-@app.route('/factorio_lamps', methods=['GET', 'POST'])
+@application.route('/factorio_lamps', methods=['GET', 'POST'])
 def process_lamps():
     if request.method == 'POST':
         # check if the post request has the file part
@@ -76,6 +76,6 @@ def process_lamps():
     return render_template('lamp.html')
 
 if __name__ == "__main__":
-    #app.run()
-    app.run(host="0.0.0.0", port=8080)
+    #application.run()
+    application.run(host="0.0.0.0", port=8080)
 
