@@ -32,3 +32,8 @@ git config --global user.name "John Bauer"
 git config --global user.email horatio@gmail.com
 
 pip install uwsgi
+
+
+selinux seems to block nginx.  fix:
+setsebool -P httpd_can_network_connect true
+
