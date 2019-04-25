@@ -6,3 +6,19 @@ B&W Rose downloaded from here:
 https://www.pexels.com/photo/black-and-white-nature-flowers-close-up-view-57905/
 
 favicon from favicon.io
+
+
+random notes on setting up a new instance:
+
+sudo yum -y install yum-utils
+sudo yum install emacs
+sudo yum install git
+sudo yum install gcc nginx
+sudo yum install python36
+sudo yum install python36-devel
+
+add eval `ssh-agent` to .bashrc, create ssh key
+export EDITOR=emacs
+git config --global --edit
+
+pip install uwsgi
