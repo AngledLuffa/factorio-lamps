@@ -3,7 +3,7 @@ import json
 import sys
 import zlib
 
-from collections import deque, OrderedDict
+from collections import deque, namedtuple, OrderedDict
 
 import networkx as nx
 import numpy as np
@@ -14,7 +14,17 @@ SHOW_INTERMEDIATES = False
 SHOW_BLUEPRINT = False
 SHOW_PREVIEW = True
 
-BASE_COLORS = {
+ColorEntry = namedtuple('ColorEntry',
+                        ['name', 'RGB'])
+
+def BuildColorInfo(colors):
+    processed_colors = []
+    for color in colors.keys():
+        processed_colors.append(ColorEntry(name=color,
+                                           RGB=colors[color]))
+    return processed_colors
+
+BASE_COLORS = BuildColorInfo({
     "signal-red": np.array((255, 0, 0)),
     "signal-green": np.array((0, 255, 0)),
     "signal-blue": np.array((0, 0, 255)),
@@ -23,9 +33,9 @@ BASE_COLORS = {
     "signal-cyan": np.array((0, 255, 255)),
     "signal-white": np.array((255, 255, 255)),
     "signal-black": np.array((0, 0, 0)),
-}
+})
 
-EXPANDED_LAMP_COLORS = {
+EXPANDED_LAMP_COLORS = BuildColorInfo({
     "signal-white": np.array((255, 255, 255)),
     "signal-light-grey": np.array((228, 228, 228)),
     "signal-grey": np.array((136, 136, 136)),
@@ -42,9 +52,9 @@ EXPANDED_LAMP_COLORS = {
     "signal-blue": np.array((0, 0, 234)),
     "signal-light-purple": np.array((207, 110, 228)),
     "signal-dark-purple": np.array((130, 0, 128)),
-}
+})
 
-DECTORIO_LAMP_COLORS = {
+DECTORIO_LAMP_COLORS = BuildColorInfo({
     "signal-red": np.array((255, 40, 25)),
     "signal-orange": np.array((252, 112, 56)),
     "signal-tangerine": np.array((255, 147, 35)),
@@ -65,7 +75,7 @@ DECTORIO_LAMP_COLORS = {
     "signal-black": np.array((56, 33, 142)),
     "signal-grey": np.array((204, 204, 204)),
     "signal-white": np.array((255, 255, 255)),
-}
+})
 
 def compress_blueprint(blueprint):
     """
@@ -93,7 +103,7 @@ def decompress_blueprint(blueprint):
     blueprint = zlib.decompress(blueprint)
     return json.loads(blueprint)
 
-def min_cost_colors(centroids, colors, color_map):
+def min_cost_colors(centroids, colors):
     """
     Assign colors based on min cost flow from centroid to color.
     """
@@ -113,10 +123,10 @@ def min_cost_colors(centroids, colors, color_map):
     for c in centroid_names:
         G.add_node(c, demand=-1)
     for k in colors:
-        G.add_node(k, demand=1)
+        G.add_node(k.name, demand=1)
         for c in range(len(centroids)):
-            distance = int(np.linalg.norm(color_map[k] - centroids[c]))
-            G.add_edge(centroid_names[c], k, capacity=1, weight=distance)
+            distance = int(np.linalg.norm(k.RGB - centroids[c]))
+            G.add_edge(centroid_names[c], k.name, capacity=1, weight=distance)
 
     flow = nx.algorithms.min_cost_flow(G)
     flow_colors = []
@@ -290,8 +300,7 @@ def convert_image_to_array(image):
                            "Color depth: %d" % image.shape[2])
     return image
 
-def convert_image_to_blueprint_nearest(image, colors, color_map, disable_black):
-    colors = list(colors)
+def convert_image_to_blueprint_nearest(image, colors, disable_black):
     width, height = image.size
     image = convert_image_to_array(image)
     pixel_colors = []
@@ -299,16 +308,16 @@ def convert_image_to_blueprint_nearest(image, colors, color_map, disable_black):
         pixel_colors.append([])
         row = pixel_colors[-1]
         for j in range(width):
-            distances = [np.linalg.norm(color_map[color] - image[i, j, :])
+            distances = [np.linalg.norm(color.RGB - image[i, j, :])
                          for color in colors]
-            row.append(colors[np.argmin(distances)])
+            row.append(colors[np.argmin(distances)].name)
             
     blueprint = convert_to_blueprint(pixel_colors, width, height,
                                      disable_black)
     return compress_blueprint(blueprint), None
 
             
-def convert_image_to_blueprint_kmeans(image, colors, color_map, disable_black):
+def convert_image_to_blueprint_kmeans(image, colors, disable_black):
     width, height = image.size
     flat_image = convert_image_to_array(image)
     flat_image = flat_image.reshape((width * height, 3))
@@ -326,7 +335,7 @@ def convert_image_to_blueprint_kmeans(image, colors, color_map, disable_black):
     new_image = Image.fromarray(kmeans_image, "RGB")
 
     # TODO: make mincost/default an option
-    label_to_colors = min_cost_colors(centroids, colors, color_map)
+    label_to_colors = min_cost_colors(centroids, colors)
     pixel_colors = np.array([label_to_colors[x] for x in labels])
     pixel_colors = pixel_colors.reshape((height, width))
 
@@ -335,13 +344,17 @@ def convert_image_to_blueprint_kmeans(image, colors, color_map, disable_black):
     return compress_blueprint(blueprint), new_image
 
 
-def convert_blueprint_to_preview(blueprint, color_map):
+def convert_blueprint_to_preview(blueprint, colors):
     """
     Converts one of the blueprints created above back to an image.
 
     Useful for displaying previews and for verifying that the
     blueprint was sensible.
     """
+    color_map = {}
+    for color in colors:
+        color_map[color.name] = color.RGB
+    
     entities = decompress_blueprint(blueprint)["blueprint"]["entities"]
     horizon = deque()
 
@@ -438,7 +451,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp, new_image = convert_image_to_blueprint_kmeans(image, BASE_COLORS.keys(), BASE_COLORS, True)
+    bp, new_image = convert_image_to_blueprint_nearest(image, BASE_COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     if SHOW_BLUEPRINT:
