@@ -58,8 +58,7 @@ def process_lamps():
             colors = lamps.BASE_COLORS
             disable_black = True
             if not bool(request.form.get('base_black', None)):
-                colors = list(colors)
-                colors.remove('signal-black')
+                colors = [x for x in colors if x.name != 'signal-black']
 
         bp, new_image = lamps.convert_image_to_blueprint_kmeans(image, colors, disable_black)
 
