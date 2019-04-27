@@ -1,5 +1,6 @@
 import base64
 import json
+import warnings
 import sys
 import zlib
 
@@ -458,6 +459,7 @@ def resize_image(image, shape=None, lamps=None, default=False):
 if __name__ == '__main__':
     path = sys.argv[1]
 
+    warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
     if len(sys.argv) > 2:
         width = int(sys.argv[2])

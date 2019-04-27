@@ -1,6 +1,7 @@
 import base64
 import io
 import os
+import warnings
 
 import lamps
 from PIL import Image
@@ -25,6 +26,7 @@ def process_lamps():
         if 'file' not in request.files:
             return redirect(request.url)
 
+        warnings.simplefilter('error', Image.DecompressionBombWarning)
         image = Image.open(request.files['file'])
 
         resize = request.form.get('resize', 'default')
