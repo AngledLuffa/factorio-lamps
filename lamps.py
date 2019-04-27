@@ -5,6 +5,9 @@ import zlib
 
 from collections import deque, namedtuple, OrderedDict
 
+import colormath.color_conversions as color_conversions
+import colormath.color_diff as color_diff
+import colormath.color_objects as color_objects
 import networkx as nx
 import numpy as np
 from scipy.cluster.vq import kmeans2
@@ -15,13 +18,17 @@ SHOW_BLUEPRINT = False
 SHOW_PREVIEW = True
 
 ColorEntry = namedtuple('ColorEntry',
-                        ['name', 'RGB'])
+                        ['name', 'RGB', 'LAB'])
 
 def BuildColorInfo(colors):
     processed_colors = []
     for color in colors.keys():
+        rgb = colors[color]
+        rgb_c = color_objects.sRGBColor(rgb[0], rgb[1], rgb[2], True)
+        lab = color_conversions.convert_color(rgb_c, color_objects.LabColor)
         processed_colors.append(ColorEntry(name=color,
-                                           RGB=colors[color]))
+                                           RGB=rgb,
+                                           LAB=lab))
     return processed_colors
 
 BASE_COLORS = BuildColorInfo({
@@ -308,7 +315,14 @@ def convert_image_to_blueprint_nearest(image, colors, disable_black):
         pixel_colors.append([])
         row = pixel_colors[-1]
         for j in range(width):
-            distances = [np.linalg.norm(color.RGB - image[i, j, :])
+            # TODO: convert whole image to LAB?
+            distances = []
+            pixel_rgb = image[i, j, :]
+            rgb_c = color_objects.sRGBColor(pixel_rgb[0], pixel_rgb[1],
+                                            pixel_rgb[2], True)
+            lab = color_conversions.convert_color(rgb_c,
+                                                  color_objects.LabColor)
+            distances = [color_diff.delta_e_cie2000(color.LAB, lab)
                          for color in colors]
             row.append(colors[np.argmin(distances)].name)
             
@@ -451,7 +465,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp, new_image = convert_image_to_blueprint_nearest(image, BASE_COLORS, True)
+    bp, new_image = convert_image_to_blueprint_kmeans(image, BASE_COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     if SHOW_BLUEPRINT:
