@@ -7,6 +7,10 @@ https://www.pexels.com/photo/black-and-white-nature-flowers-close-up-view-57905/
 
 favicon from favicon.io
 
+max width fieldset:
+
+https://stackoverflow.com/questions/2302495/is-there-any-way-to-have-a-fieldset-width-only-be-as-wide-as-the-controls-in-the/2302543
+
 
 random notes on setting up a new instance:
 

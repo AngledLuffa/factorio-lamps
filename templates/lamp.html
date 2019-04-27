@@ -1,9 +1,14 @@
 <!doctype html>
 <h1>Upload Image</h1>
+<style type="text/css">
+    .fieldset-auto-width {
+         display: inline-block;
+    }
+</style>
 <form method=post enctype=multipart/form-data>
   <input type=file name=file>
 <br>
-<fieldset>
+<div><fieldset class="fieldset-auto-width">
   <legend>Size Options</legend>
   <input type=radio name=resize value=lamps> Fixed number of lamps:
   <input type=number name=lamps style="width: 7em" value=5000>
@@ -15,16 +20,16 @@
   <input type=radio name=resize value=default checked> Default scaling
 <br>
   <input type=radio name=resize value=none> No resizing (warning: likely to be huge!)
-</fieldset>
+</fieldset></div>
 <br>
-<fieldset>
+<div><fieldset class="fieldset-auto-width">
   <legend>Color Options</legend>
   <input type=radio name=color value=base checked>Base colors
   <input type=checkbox name=base_black value=true checked>Use unlit lamps for black
   <br>
   <input type=radio name=color value=expanded><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
   <input type=radio name=color value=dectorio><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a><br>
-</fieldset>
+</fieldset></div>
 <br>
   <input type=submit value=Upload>
 <br>
