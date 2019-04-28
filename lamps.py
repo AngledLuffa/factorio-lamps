@@ -457,6 +457,18 @@ def resize_image(image, shape=None, lamps=None, default=False):
     image = image.resize((new_width, new_height))
     return image
 
+# https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+ORIENTATIONS = {
+    1: (0, False),
+    2: (0, True),
+    3: (180, False),
+    4: (180, True),
+    5: (270, True),
+    6: (270, False),
+    7: (90, True),
+    8: (90, False),
+}
+
 def open_rotated_image(path):
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
@@ -465,17 +477,15 @@ def open_rotated_image(path):
         for tag in image._getexif().keys():
             if EXIF_TAGS[tag] == 'Orientation':
                 orientation = image._getexif()[tag]
-                if orientation == 3:
-                    image = image.rotate(180, expand=True)
-                    print("Rotating image 180")
-                elif orientation == 6:
-                    image = image.rotate(270, expand=True)
-                    print("Rotating image 270")
-                elif orientation == 8:
-                    image = image.rotate(90, expand=True)
-                    print("Rotating image 90")
-                else:
+                if orientation not in ORIENTATIONS:
                     print("Unknown orientation %d" % orientation)
+                else:
+                    rotation, flip = ORIENTATIONS.get(orientation)
+                    if rotation != 0:
+                        image = image.rotate(rotation, expand=True)
+                    if flip:
+                        image = image.transpose(Image.FLIP_LEFT_RIGHT)
+                break
     return image
 
 COLORS = BASE_COLORS
