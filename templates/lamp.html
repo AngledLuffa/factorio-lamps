@@ -5,6 +5,7 @@
          display: inline-block;
     }
 </style>
+
 <form method=post enctype=multipart/form-data>
   <input type=file name=file>
 <br>
@@ -21,7 +22,9 @@
 <br>
   <input type=radio name=resize value=none> No resizing (warning: likely to be huge!)
 </fieldset></div>
+
 <br>
+
 <div><fieldset class="fieldset-auto-width">
   <legend>Color Options</legend>
   <input type=radio name=color value=base checked>Base colors
@@ -30,6 +33,13 @@
   <input type=radio name=color value=expanded><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
   <input type=radio name=color value=dectorio><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a><br>
 </fieldset></div>
+<br>
+<div><fieldset class="fieldset-auto-width">
+  <legend>Color Reduction Method</legend>
+  <input type=radio name=color value=kmeans checked>KMeans<br>
+  <input type=radio name=color value=nearest>Nearest color match<br>
+</fieldset></div>
+
 <br>
   <input type=submit value=Upload>
 <br>

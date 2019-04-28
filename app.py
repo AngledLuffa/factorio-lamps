@@ -61,7 +61,11 @@ def process_lamps():
             if not bool(request.form.get('base_black', None)):
                 colors = [x for x in colors if x.name != 'signal-black']
 
-        bp, new_image = lamps.convert_image_to_blueprint_kmeans(image, colors, disable_black)
+        method = request.form.get('method', 'kmeans')
+        if method == 'kmeans':
+            bp, _ = lamps.convert_image_to_blueprint_kmeans(image, colors, disable_black)
+        elif method == 'nearest':
+            bp, _ = lamps.convert_image_to_blueprint_nearest(image, colors, disable_black)   
 
         preview_image = lamps.convert_blueprint_to_preview(bp, colors)
         f = io.BytesIO()
