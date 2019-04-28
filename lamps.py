@@ -456,10 +456,8 @@ def resize_image(image, shape=None, lamps=None, default=False):
     print("Resizing to %d, %d" % (new_width, new_height))
     image = image.resize((new_width, new_height))
     return image
-            
-if __name__ == '__main__':
-    path = sys.argv[1]
 
+def open_rotated_image(path):
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
     for tag in image._getexif().keys():
@@ -476,6 +474,13 @@ if __name__ == '__main__':
                 print("Rotating image 90")
             else:
                 print("Unknown orientation %d" % orientation)
+    return image
+
+if __name__ == '__main__':
+    path = sys.argv[1]
+
+    image = open_rotated_image(path)
+    
     if len(sys.argv) > 2:
         width = int(sys.argv[2])
         height = int(sys.argv[3])
@@ -484,7 +489,7 @@ if __name__ == '__main__':
 
     if SHOW_INTERMEDIATES:
         image.show()
-
+        
     bp, new_image = convert_image_to_blueprint_kmeans(image, BASE_COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
