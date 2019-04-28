@@ -476,6 +476,8 @@ def open_rotated_image(path):
                 print("Unknown orientation %d" % orientation)
     return image
 
+COLORS = BASE_COLORS
+
 if __name__ == '__main__':
     path = sys.argv[1]
 
@@ -490,7 +492,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
         
-    bp, new_image = convert_image_to_blueprint_kmeans(image, BASE_COLORS, True)
+    bp, new_image = convert_image_to_blueprint_kmeans(image, COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     if SHOW_BLUEPRINT:
@@ -498,6 +500,6 @@ if __name__ == '__main__':
         print("BLUEPRINT")
         print(bp)
 
-    preview = convert_blueprint_to_preview(bp, BASE_COLORS)
+    preview = convert_blueprint_to_preview(bp, COLORS)
     if SHOW_PREVIEW:
         preview.show()
