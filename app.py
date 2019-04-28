@@ -26,7 +26,7 @@ def process_lamps():
         if 'file' not in request.files:
             return redirect(request.url)
 
-        image = lamps.open_rotated_path(request.files['file'])
+        image = lamps.open_rotated_image(request.files['file'])
 
         resize = request.form.get('resize', 'default')
         if resize == 'default':
