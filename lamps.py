@@ -13,6 +13,7 @@ import networkx as nx
 import numpy as np
 from scipy.cluster.vq import kmeans2
 from PIL import Image
+from PIL.ExifTags import TAGS as EXIF_TAGS
 
 SHOW_INTERMEDIATES = False
 SHOW_BLUEPRINT = False
@@ -461,6 +462,20 @@ if __name__ == '__main__':
 
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
+    for tag in image._getexif().keys():
+        if EXIF_TAGS[tag] == 'Orientation':
+            orientation = image._getexif()[tag]
+            if orientation == 3:
+                image = image.rotate(180, expand=True)
+                print("Rotating image 180")
+            elif orientation == 6:
+                image = image.rotate(270, expand=True)
+                print("Rotating image 270")
+            elif orientation == 8:
+                image = image.rotate(90, expand=True)
+                print("Rotating image 90")
+            else:
+                print("Unknown orientation %d" % orientation)
     if len(sys.argv) > 2:
         width = int(sys.argv[2])
         height = int(sys.argv[3])
