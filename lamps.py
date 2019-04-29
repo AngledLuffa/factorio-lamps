@@ -6,9 +6,7 @@ import zlib
 
 from collections import deque, namedtuple, OrderedDict
 
-import colormath.color_conversions as color_conversions
-import colormath.color_diff as color_diff
-import colormath.color_objects as color_objects
+import skimage.color
 import networkx as nx
 import numpy as np
 from scipy.cluster.vq import kmeans2
@@ -26,11 +24,10 @@ def BuildColorInfo(colors):
     processed_colors = []
     for color in colors.keys():
         rgb = colors[color]
-        rgb_c = color_objects.sRGBColor(rgb[0], rgb[1], rgb[2], True)
-        lab = color_conversions.convert_color(rgb_c, color_objects.LabColor)
+        lab = skimage.color.rgb2lab(rgb.reshape((1, 1, 3)) / 256)
         processed_colors.append(ColorEntry(name=color,
                                            RGB=rgb,
-                                           LAB=lab))
+                                           LAB=lab.reshape((3))))
     return processed_colors
 
 BASE_COLORS = BuildColorInfo({
@@ -127,18 +124,19 @@ def min_cost_colors(centroids, colors):
     # sink: K input
 
     centroid_names = ["C%d" % i for i in range(len(centroids))]
-    rgb_centroids = [color_objects.sRGBColor(c[0], c[1], c[2], True)
-                     for c in centroids]
-    lab_centroids = [color_conversions.convert_color(rgb, color_objects.LabColor) for rgb in rgb_centroids]
-    
+    rgb_centroids = [c.reshape((1, 1, 3)) / 256 for c in centroids]
+    lab_centroids = [skimage.color.rgb2lab(rgb).reshape((3))
+                     for rgb in rgb_centroids]
+
     G = nx.DiGraph()
     for c in centroid_names:
         G.add_node(c, demand=-1)
     for k in colors:
         G.add_node(k.name, demand=1)
         for c in range(len(centroids)):
-            distance = int(color_diff.delta_e_cie2000(k.LAB, lab_centroids[c]))
-            G.add_edge(centroid_names[c], k.name, capacity=1, weight=distance)
+            distance = skimage.color.deltaE_ciede2000(k.LAB, lab_centroids[c])
+            G.add_edge(centroid_names[c], k.name, capacity=1,
+                       weight=int(distance))
 
     flow = nx.algorithms.min_cost_flow(G)
     flow_colors = []
@@ -323,11 +321,9 @@ def convert_image_to_blueprint_nearest(image, colors, disable_black):
             # TODO: convert whole image to LAB?
             distances = []
             pixel_rgb = image[i, j, :]
-            rgb_c = color_objects.sRGBColor(pixel_rgb[0], pixel_rgb[1],
-                                            pixel_rgb[2], True)
-            lab = color_conversions.convert_color(rgb_c,
-                                                  color_objects.LabColor)
-            distances = [color_diff.delta_e_cie2000(color.LAB, lab)
+            rgb = pixel_rgb.reshape((1, 1, 3)) / 256
+            lab = skimage.color.rgb2lab(rgb).reshape((3))
+            distances = [skimage.color.deltaE_ciede2000(color.LAB, lab)
                          for color in colors]
             row.append(colors[np.argmin(distances)].name)
             
@@ -488,7 +484,8 @@ def open_rotated_image(path):
                 break
     return image
 
-COLORS = BASE_COLORS
+COLORS = EXPANDED_LAMP_COLORS
+#COLORS = BASE_COLORS
 
 if __name__ == '__main__':
     path = sys.argv[1]
@@ -503,7 +500,7 @@ if __name__ == '__main__':
 
     if SHOW_INTERMEDIATES:
         image.show()
-        
+
     bp, new_image = convert_image_to_blueprint_kmeans(image, COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
