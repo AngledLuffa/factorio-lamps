@@ -478,23 +478,31 @@ ORIENTATIONS = {
     8: (90, False),
 }
 
+def get_exif_tag(image):
+    try:
+        exif = image._getexif()
+        if exif:
+            for tag in image._getexif().keys():
+                if EXIF_TAGS[tag] == 'Orientation':
+                    return image._getexif()[tag]
+    except AttributeError:
+        # some images don't have exif
+        pass
+    return None
+
 def open_rotated_image(path):
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
-    exif = image._getexif()
-    if exif:
-        for tag in image._getexif().keys():
-            if EXIF_TAGS[tag] == 'Orientation':
-                orientation = image._getexif()[tag]
-                if orientation not in ORIENTATIONS:
-                    print("Unknown orientation %d" % orientation)
-                else:
-                    rotation, flip = ORIENTATIONS.get(orientation)
-                    if rotation != 0:
-                        image = image.rotate(rotation, expand=True)
-                    if flip:
-                        image = image.transpose(Image.FLIP_LEFT_RIGHT)
-                break
+    orientation = get_exif_tag(image)
+    if orientation:
+        if orientation not in ORIENTATIONS:
+            print("Unknown orientation %d" % orientation)
+        else:
+            rotation, flip = ORIENTATIONS.get(orientation)
+            if rotation != 0:
+                image = image.rotate(rotation, expand=True)
+            if flip:
+                image = image.transpose(Image.FLIP_LEFT_RIGHT)
     return image
 
 COLORS = EXPANDED_LAMP_COLORS
