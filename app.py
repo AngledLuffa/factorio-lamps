@@ -26,7 +26,14 @@ def process_lamps():
         if 'file' not in request.files:
             return redirect(request.url)
 
-        image = lamps.open_rotated_image(request.files['file'])
+        try:
+            image = lamps.open_rotated_image(request.files['file'])
+        except FileNotFoundError:
+            return render_template('lamp.html',
+                                   error='Upload error: image not found')
+        except OSError:
+            return render_template('lamp.html',
+                                   error='Upload error: unable to read image file')
 
         resize = request.form.get('resize', 'default')
         if resize == 'default':
@@ -47,6 +54,9 @@ def process_lamps():
             except ValueError:
                 height = 60
             image = lamps.resize_image(image, shape=(width, height))
+        else:
+            return render_template('lamp.html',
+                                   error='Unknown resize option')
 
         colors = request.form.get('color', 'base')
         if colors == 'expanded':
@@ -55,17 +65,23 @@ def process_lamps():
         elif colors == 'dectorio':
             colors = lamps.DECTORIO_LAMP_COLORS
             disable_black = False
-        else:   # include 'base' or undefined
+        elif colors == 'base':   # include 'base' or undefined
             colors = lamps.BASE_COLORS
             disable_black = True
             if not bool(request.form.get('base_black', None)):
                 colors = [x for x in colors if x.name != 'signal-black']
+        else:
+            return render_template('lamp.html',
+                                   error='Unknown color set')
 
         method = request.form.get('method', 'kmeans')
         if method == 'kmeans':
             bp, _ = lamps.convert_image_to_blueprint_kmeans(image, colors, disable_black)
         elif method == 'nearest':
-            bp, _ = lamps.convert_image_to_blueprint_nearest(image, colors, disable_black)   
+            bp, _ = lamps.convert_image_to_blueprint_nearest(image, colors, disable_black)
+        else:
+            return render_template('lamp.html',
+                                   error='Unknown color reduction method')
 
         preview_image = lamps.convert_blueprint_to_preview(bp, colors)
         f = io.BytesIO()
