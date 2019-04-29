@@ -310,28 +310,42 @@ def convert_image_to_array(image):
                            "Color depth: %d" % image.shape[2])
     return image
 
+def nearest_colors(centroids, colors):
+    label_to_colors = []
+    for centroid in centroids:
+        rgb = centroid.reshape((1, 1, 3)) / 256
+        lab = skimage.color.rgb2lab(rgb).reshape((3))
+        distances = [skimage.color.deltaE_ciede2000(color.LAB, lab)
+                     for color in colors]
+        label_to_colors.append(colors[np.argmin(distances)].name)
+    return label_to_colors
+            
 def convert_image_to_blueprint_nearest(image, colors, disable_black):
     width, height = image.size
-    image = convert_image_to_array(image)
-    pixel_colors = []
-    for i in range(height):
-        pixel_colors.append([])
-        row = pixel_colors[-1]
-        for j in range(width):
-            # TODO: convert whole image to LAB?
-            distances = []
-            pixel_rgb = image[i, j, :]
-            rgb = pixel_rgb.reshape((1, 1, 3)) / 256
-            lab = skimage.color.rgb2lab(rgb).reshape((3))
-            distances = [skimage.color.deltaE_ciede2000(color.LAB, lab)
-                         for color in colors]
-            row.append(colors[np.argmin(distances)].name)
-            
+    flat_image = convert_image_to_array(image)
+    flat_image = flat_image.reshape((width * height, 3))
+
+    num_centroids = max(len(colors) * 2, 100)
+    centroids, labels = kmeans2(flat_image, num_centroids,
+                                iter=50, minit='points')
+
+    # centroids will be a Kx3 array representing colors
+    # labels will be which centroid for each pixel
+    # so centroids[labels] will be the pixels mapped to their K colors
+    flat_kmeans_image = centroids[labels]
+    kmeans_image = flat_kmeans_image.reshape((height, width, 3))
+    kmeans_image = np.array(kmeans_image, dtype=np.int8)
+
+    new_image = Image.fromarray(kmeans_image, "RGB")
+
+    label_to_colors = nearest_colors(centroids, colors)
+    pixel_colors = np.array([label_to_colors[x] for x in labels])
+    pixel_colors = pixel_colors.reshape((height, width))
+
     blueprint = convert_to_blueprint(pixel_colors, width, height,
                                      disable_black)
-    return compress_blueprint(blueprint), None
+    return compress_blueprint(blueprint), new_image
 
-            
 def convert_image_to_blueprint_kmeans(image, colors, disable_black):
     width, height = image.size
     flat_image = convert_image_to_array(image)
@@ -349,7 +363,6 @@ def convert_image_to_blueprint_kmeans(image, colors, disable_black):
 
     new_image = Image.fromarray(kmeans_image, "RGB")
 
-    # TODO: make mincost/default an option
     label_to_colors = min_cost_colors(centroids, colors)
     pixel_colors = np.array([label_to_colors[x] for x in labels])
     pixel_colors = pixel_colors.reshape((height, width))
@@ -501,7 +514,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp, new_image = convert_image_to_blueprint_kmeans(image, COLORS, True)
+    bp, new_image = convert_image_to_blueprint_nearest(image, COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     if SHOW_BLUEPRINT:
