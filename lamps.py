@@ -276,9 +276,13 @@ def convert_to_blueprint(pixel_colors, width, height,
     if pole_x_start % 2 == 1:
         pole_x_start = pole_x_start - 1
     pole_x = list(range(pole_x_start, width-2, 8))
+    if len(pole_x) == 0:
+        pole_x.append(pole_x_start)
     if pole_x[-1] < width - 3:
         pole_x.append(width - 3)
     pole_y = list(range(-height+3, height-2, 8))
+    if len(pole_y) == 0:
+        pole_x.append(pole_x_start)
     if pole_y[-1] < height - 3:
         pole_y.append(height - 3)
 
