@@ -505,8 +505,8 @@ def open_rotated_image(path):
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
     return image
 
-COLORS = EXPANDED_LAMP_COLORS
-#COLORS = BASE_COLORS
+#COLORS = EXPANDED_LAMP_COLORS
+COLORS = BASE_COLORS
 
 if __name__ == '__main__':
     path = sys.argv[1]
@@ -522,7 +522,7 @@ if __name__ == '__main__':
     if SHOW_INTERMEDIATES:
         image.show()
 
-    bp, new_image = convert_image_to_blueprint_nearest(image, COLORS, True)
+    bp, new_image = convert_image_to_blueprint_kmeans(image, COLORS, True)
     if SHOW_INTERMEDIATES:
         new_image.show()
     if SHOW_BLUEPRINT:
