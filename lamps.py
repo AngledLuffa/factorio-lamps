@@ -114,7 +114,7 @@ def min_cost_colors(centroids, colors):
     Assign colors based on min cost flow from centroid to color.
     """
     K = len(centroids)
-    assert K == len(colors)
+    assert K <= len(colors)
 
     # We build a mincost flow as follows:
     # source: K output
@@ -129,18 +129,24 @@ def min_cost_colors(centroids, colors):
                      for rgb in rgb_centroids]
 
     G = nx.DiGraph()
+    G.add_node('source', demand=-K)
+    G.add_node('sink', demand=K)
     for c in centroid_names:
-        G.add_node(c, demand=-1)
+        G.add_node(c)
+        G.add_edge('source', c, capacity=1, weight=0)
     for k in colors:
-        G.add_node(k.name, demand=1)
+        G.add_node(k.name)
         for c in range(len(centroids)):
             distance = skimage.color.deltaE_ciede2000(k.LAB, lab_centroids[c])
             G.add_edge(centroid_names[c], k.name, capacity=1,
                        weight=int(distance))
-
+        G.add_edge(k.name, 'sink', capacity=1, weight=0)
+            
     flow = nx.algorithms.min_cost_flow(G)
     flow_colors = []
     for source in sorted(flow.keys()):
+        if source == 'source':
+            continue
         c = None
         for dest in flow[source]:
             if flow[source][dest] > 0:
@@ -351,7 +357,8 @@ def convert_image_to_blueprint_kmeans(image, colors, disable_black):
     flat_image = convert_image_to_array(image)
     flat_image = flat_image.reshape((width * height, 3))
 
-    centroids, labels = kmeans2(flat_image, len(colors),
+    num_centroids = min(len(colors), width * height)
+    centroids, labels = kmeans2(flat_image, num_centroids,
                                 iter=50, minit='points')
 
     # centroids will be a Kx3 array representing colors
