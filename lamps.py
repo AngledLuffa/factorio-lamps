@@ -542,7 +542,10 @@ def extract_blueprint_stats(bp):
     names = {}
     for e in entities:
         names[e["name"]] = names.get(e["name"], 0) + 1
-    return names
+    stats = OrderedDict()
+    for name, quantity in sorted(names.items()):
+        stats[name] = quantity
+    return stats
 
 #COLORS = EXPANDED_LAMP_COLORS
 COLORS = BASE_COLORS
