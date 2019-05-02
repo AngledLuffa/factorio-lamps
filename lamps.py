@@ -24,6 +24,8 @@ def BuildColorInfo(colors):
     processed_colors = []
     for color in colors.keys():
         rgb = colors[color]
+        # LAB colors are for more accurate color assignment
+        # https://en.wikipedia.org/wiki/Color_difference#CIEDE2000
         lab = skimage.color.rgb2lab(rgb.reshape((1, 1, 3)) / 256)
         processed_colors.append(ColorEntry(name=color,
                                            RGB=rgb,
@@ -221,8 +223,7 @@ def add_bidirectional_connection(e1, e2):
     add_connection(e1, e2)
     add_connection(e2, e1)    
 
-def convert_to_blueprint(pixel_colors, width, height,
-                         disable_black):
+def convert_entities_to_blueprint(entities):
     blueprint = {
         "blueprint": {
             "icons": [
@@ -238,16 +239,26 @@ def convert_to_blueprint(pixel_colors, width, height,
         },
     }
 
+    blueprint["blueprint"]["entities"] = entities
+    
+    return blueprint
+
+def find_neighbor(pixel_colors, lamps, i, j):
+    neighbor = None
+    if i > 0 and pixel_colors[i-1][j] == pixel_colors[i][j]:
+        neighbor = lamps[(i-1, j)]
+    elif j > 0 and pixel_colors[i][j-1] == pixel_colors[i][j]:
+        neighbor = lamps[(i, j-1)]
+    return neighbor
+
+def convert_to_blueprint(pixel_colors, width, height,
+                         disable_black):
     entities = []
     lamps = {}
 
     for i in range(height):
         for j in range(width):
-            neighbor = None
-            if i > 0 and pixel_colors[i-1][j] == pixel_colors[i][j]:
-                neighbor = lamps[(i-1, j)]
-            elif j > 0 and pixel_colors[i][j-1] == pixel_colors[i][j]:
-                neighbor = lamps[(i, j-1)]
+            neighbor = find_neighbor(pixel_colors, lamps, i, j)
 
             if neighbor:
                 lamp = build_lamp(len(entities) + 1,
@@ -299,9 +310,7 @@ def convert_to_blueprint(pixel_colors, width, height,
             }
             entities.append(pole)
 
-    blueprint["blueprint"]["entities"] = entities
-    
-    return blueprint
+    return convert_entities_to_blueprint(entities)
 
 def convert_image_to_array(image):
     image = np.asarray(image, dtype=np.float32)
