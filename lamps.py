@@ -243,13 +243,24 @@ def convert_entities_to_blueprint(entities):
     
     return blueprint
 
+POSSIBLE_NEIGHBORS = [(-3, 4), (-2, 4), (-1, 4),
+                      (-4, 3), (-3, 3), (-3, 3), (-1, 3),
+                      (-4, 2), (-3, 2), (-2, 2), (-1, 2),
+                      (-4, 1), (-3, 1), (-2, 1), (-1, 1),
+                      (-5, 0), (-4, 0), (-3, 0), (-2, 0), (-1, 0),
+                      (-4, -1), (-3, -1), (-2, -1), (-1, -1), (0, -1),
+                      (-4, -2), (-3, -2), (-2, -2), (-1, -2), (0, -2),
+                      (-4, -3), (-3, -3), (-3, -3), (-1, -3), (0, -3),
+                      (-3, -4), (-2, -4), (-1, -4), (0, -4),
+                      (0, -5)]
+
 def find_neighbor(pixel_colors, lamps, i, j):
-    neighbor = None
-    if i > 0 and pixel_colors[i-1][j] == pixel_colors[i][j]:
-        neighbor = lamps[(i-1, j)]
-    elif j > 0 and pixel_colors[i][j-1] == pixel_colors[i][j]:
-        neighbor = lamps[(i, j-1)]
-    return neighbor
+    for x, y in POSSIBLE_NEIGHBORS:
+        if (i+x, j+y) not in lamps:
+            continue
+        if pixel_colors[i+x][j+y] == pixel_colors[i][j]:
+            return lamps[(i+x, j+y)]
+    return None
 
 def convert_to_blueprint(pixel_colors, width, height,
                          disable_black):
