@@ -526,6 +526,13 @@ def open_rotated_image(path):
                 image = image.transpose(Image.FLIP_LEFT_RIGHT)
     return image
 
+def extract_blueprint_stats(bp):
+    entities = decompress_blueprint(bp)["blueprint"]["entities"]
+    names = {}
+    for e in entities:
+        names[e["name"]] = names.get(e["name"], 0) + 1
+    return names
+
 #COLORS = EXPANDED_LAMP_COLORS
 COLORS = BASE_COLORS
 
@@ -554,3 +561,12 @@ if __name__ == '__main__':
     preview = convert_blueprint_to_preview(bp, COLORS)
     if SHOW_PREVIEW:
         preview.show()
+
+    stats = extract_blueprint_stats(bp)
+    entity_names = list(stats.keys())
+    entity_names.sort()
+    print()
+    print("Entities used:")
+    for name in entity_names:
+        print("  %s: %d" % (name, stats[name]))
+
