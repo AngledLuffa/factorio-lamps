@@ -49,6 +49,11 @@
 <br>
 </form>
 
+{% if preview %}
+  <h2>Preview</h2>
+  <img src="data:image/png;base64,{{ preview }}" alt="preview.png">
+{% endif %}
+
 {% if bp %}
   <h2>Blueprint</h2>
   <textarea rows="10" cols="50" readonly id="blueprint">{{ bp }}</textarea>
@@ -63,9 +68,5 @@ function myFunction() {
 }
 </script>
 
-{% endif %}
-{% if preview %}
-  <h2>Preview</h2>
-  <img src="data:image/png;base64,{{ preview }}" alt="preview.png">
 {% endif %}
 
