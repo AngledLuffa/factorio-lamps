@@ -71,8 +71,9 @@ function myFunction() {
 {% endif %}
 
 {% if stats %}
+<h2>Item quantities</h2>
 <table>
-  {% for object, quantity in stats.items() %}
+  {% for object, quantity in sorted(stats.items()) %}
   <tr><td>{{ object }}</td><td>{{ quantity }}</td></tr>
   {% endfor %}
 </table>
