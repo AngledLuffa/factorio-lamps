@@ -70,3 +70,10 @@ function myFunction() {
 
 {% endif %}
 
+{% if stats %}
+<table>
+  {% for object, quantity in stats.items() %}
+  <tr><td>{{ object }}</td><td>{{ quantity }}</td></tr>
+  {% endfor %}
+</table>
+{% endif %}

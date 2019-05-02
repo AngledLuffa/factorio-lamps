@@ -88,7 +88,9 @@ def process_lamps():
         preview_image.save(f, format="PNG")
         preview = base64.b64encode(f.getvalue())
 
-        return render_template('lamp.html', bp=bp, preview=preview.decode("utf-8"))
+        stats = lamps.extract_blueprint_stats(bp)
+        
+        return render_template('lamp.html', bp=bp, preview=preview.decode("utf-8"), stats=stats)
 
     return render_template('lamp.html')
 
