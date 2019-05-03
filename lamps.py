@@ -499,6 +499,7 @@ def resize_image(image, shape=None, lamps=None, default=False):
     return image
 
 # https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
+# rotation, flip
 ORIENTATIONS = {
     1: (0, False),
     2: (0, True),
@@ -511,6 +512,13 @@ ORIENTATIONS = {
 }
 
 def get_exif_tag(image):
+    """
+    Returns an exif tag if possible, otherwise None.
+
+    Some images don't have exif attached, and some image types don't
+    even support exif.  We catch those errors and return None
+    silently.
+    """
     try:
         exif = image._getexif()
         if exif:
@@ -523,6 +531,9 @@ def get_exif_tag(image):
     return None
 
 def open_rotated_image(path):
+    """
+    Opens an image from disk, applies exif rotation if relevant.
+    """
     warnings.simplefilter('error', Image.DecompressionBombWarning)
     image = Image.open(path)
     orientation = get_exif_tag(image)
@@ -538,6 +549,12 @@ def open_rotated_image(path):
     return image
 
 def extract_blueprint_stats(bp):
+    """
+    Given a blueprint, extracts stats.
+
+    Stats returned are how many of each item are in the blueprint.
+    Items are alphabetized.
+    """
     entities = decompress_blueprint(bp)["blueprint"]["entities"]
     names = {}
     for e in entities:
