@@ -54,7 +54,9 @@ def process_lamps():
             filename = request.files['file'].filename
             filename = secure_filename(filename)
             cache_filename = os.path.split(filename)[1]
-            tempdir = tempfile.mkdtemp(suffix="lamp")
+            # The form seems to dislike _ at the end of a field.  We
+            # finesse that by making sure it always ends with 'lamp'
+            tempdir = tempfile.mkdtemp(suffix='lamp')
             cache_dir = os.path.split(tempdir)[1]
             tmp_file = os.path.join(tempdir, cache_filename)
             print("Storing %s in %s (tmp dir %s, filename %s)" %
