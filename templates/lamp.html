@@ -8,11 +8,10 @@
 
 {% if error %}
   {{ error }}
+  <br>
 {% endif %}
 
 <form method=post enctype=multipart/form-data>
-  <input type=file name=file>
-<br>
 <div><fieldset class="fieldset-auto-width">
   <legend>Size Options</legend>
   <input type=radio name=resize value=lamps> Fixed number of lamps:
@@ -44,6 +43,7 @@
   <input type=radio name=method value=nearest>Nearest color match<br>
 </fieldset></div>
 
+  <input type=file name=file>
 <br>
   <input type=submit value=Upload>
 <br>
