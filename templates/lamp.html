@@ -43,10 +43,17 @@
   <input type=radio name=method value=nearest>Nearest color match<br>
 </fieldset></div>
 
+<br>
   <input type=file name=file>
+<br><br>
+  <button type="submit" name="image" value="upload">Upload</button>
 <br>
-  <input type=submit value=Upload>
-<br>
+{% if cache_filename %}
+  <br>
+  <button type="submit" name="image" value="cache">Reuse {{ cache_filename }}</button>
+  <input type="hidden" name="cachedir" value="{{ cache_dir }}">
+  <input type="hidden" name="cachefile" value="{{ cache_filename }}">
+{% endif %}
 </form>
 
 {% if preview %}

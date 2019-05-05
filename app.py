@@ -25,25 +25,42 @@ def favicon():
 def process_lamps():
     if request.method == 'POST':
         # check if the post request has the file part
-        if 'file' not in request.files:
-            return redirect(request.url)
+        if 'image' in request.form and request.form['image'] == 'cache':
+            cache_filename = secure_filename(request.form['cachefile'])
+            cache_dir = secure_filename(request.form['cachedir'])
+            tmp_file = os.path.join(tempfile.gettempdir(), cache_dir, cache_filename)
+            print('Attempting to reuse %s' % tmp_file)
+            try:
+                image = lamps.open_rotated_image(tmp_file)
+            except FileNotFoundError:
+                return render_template('lamp.html',
+                                       error='Sorry, the cache file no longer exists')
+            except OSError:
+                return render_template('lamp.html',
+                                       error='Sorry, the cache file has been corrupted')
+        else:
+            if 'file' not in request.files:
+                return redirect(request.url)
 
-        try:
-            image = lamps.open_rotated_image(request.files['file'])
-        except FileNotFoundError:
-            return render_template('lamp.html',
-                                   error='Upload error: image not found')
-        except OSError:
-            return render_template('lamp.html',
-                                   error='Upload error: unable to read image file')
+            try:
+                image = lamps.open_rotated_image(request.files['file'])
+            except FileNotFoundError:
+                return render_template('lamp.html',
+                                       error='Upload error: image not found')
+            except OSError:
+                return render_template('lamp.html',
+                                       error='Upload error: unable to read image file')
 
-        filename = request.files['file'].filename
-        filename = secure_filename(filename)
-        tail = os.path.split(filename)[1]
-        tempdir = tempfile.mkdtemp()
-        cache_filename = os.path.join(tempdir, tail)
-        print("Storing %s in %s" % (filename, cache_filename))
-        request.files['file'].save(cache_filename)
+            filename = request.files['file'].filename
+            filename = secure_filename(filename)
+            cache_filename = os.path.split(filename)[1]
+            tempdir = tempfile.mkdtemp(suffix="lamp")
+            cache_dir = os.path.split(tempdir)[1]
+            tmp_file = os.path.join(tempdir, cache_filename)
+            print("Storing %s in %s (tmp dir %s, filename %s)" %
+                  (filename, tmp_file, cache_dir, cache_filename))
+            request.files['file'].seek(0)
+            request.files['file'].save(tmp_file)
 
         resize = request.form.get('resize', 'default')
         if resize == 'default':
@@ -100,7 +117,9 @@ def process_lamps():
 
         stats = lamps.extract_blueprint_stats(bp)
         
-        return render_template('lamp.html', bp=bp, preview=preview.decode("utf-8"), stats=stats)
+        return render_template('lamp.html', bp=bp, 
+                               cache_filename=cache_filename, cache_dir=cache_dir,
+                               preview=preview.decode("utf-8"), stats=stats)
 
     return render_template('lamp.html')
 
