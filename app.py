@@ -1,11 +1,13 @@
 import base64
 import io
 import os
+import tempfile
 import warnings
 
 import lamps
 from PIL import Image
 from flask import Flask, flash, redirect, render_template, request, send_from_directory, url_for
+from werkzeug.utils import secure_filename
 application = Flask(__name__)
 application.config['MAX_CONTENT_PATH'] = 32 * 1024 * 1024
 
@@ -34,6 +36,14 @@ def process_lamps():
         except OSError:
             return render_template('lamp.html',
                                    error='Upload error: unable to read image file')
+
+        filename = request.files['file'].filename
+        filename = secure_filename(filename)
+        tail = os.path.split(filename)[1]
+        tempdir = tempfile.mkdtemp()
+        cache_filename = os.path.join(tempdir, tail)
+        print("Storing %s in %s" % (filename, cache_filename))
+        request.files['file'].save(cache_filename)
 
         resize = request.form.get('resize', 'default')
         if resize == 'default':
