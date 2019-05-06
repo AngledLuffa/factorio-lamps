@@ -59,8 +59,7 @@ def process_lamps():
             tempdir = tempfile.mkdtemp(suffix='lamp')
             cache_dir = os.path.split(tempdir)[1]
             tmp_file = os.path.join(tempdir, cache_filename)
-            print("Storing %s in %s (tmp dir %s, filename %s)" %
-                  (filename, tmp_file, cache_dir, cache_filename))
+            print("Storing %s in %s" % (filename, tmp_file))
             request.files['file'].seek(0)
             request.files['file'].save(tmp_file)
 

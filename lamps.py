@@ -458,7 +458,6 @@ def convert_blueprint_to_preview(blueprint, colors):
     return Image.fromarray(image, "RGB")
 
 def resize_image(image, shape=None, lamps=None, default=False):
-    print("Original image size: %s" % str(image.size))
     if shape:
         if lamps or default:
             raise RuntimeError("Can only specify one resize method")
@@ -494,7 +493,8 @@ def resize_image(image, shape=None, lamps=None, default=False):
 
     new_width = max(1, new_width)
     new_height = max(1, new_height)
-    print("Resizing to %d, %d" % (new_width, new_height))
+    print("Original image size: %s.  Resizing to (%d, %d)" % 
+          (str(image.size), new_width, new_height))
     image = image.resize((new_width, new_height))
     return image
 
