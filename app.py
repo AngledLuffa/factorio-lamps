@@ -82,6 +82,8 @@ def process_lamps():
             except ValueError:
                 height = 60
             image = lamps.resize_image(image, shape=(width, height))
+        elif resize == 'none':
+            pass
         else:
             return render_template('lamp.html',
                                    error='Unknown resize option')
