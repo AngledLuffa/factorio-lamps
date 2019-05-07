@@ -66,26 +66,17 @@ def process_lamps():
             request.files['file'].save(tmp_file)
 
         resize = request.form.get('resize', 'default')
+        width = request.form.get('width', '90', type=int)
+        height = request.form.get('height', '60', type=int)
+        num_lamps = request.form.get('lamps', '5000', type=int)
         if resize == 'default':
             image = lamps.resize_image(image, default=True)
         elif resize == 'lamps':
-            try:
-                num_lamps = int(request.form.get('lamps', '5000'))
-            except ValueError:
-                num_lamps = 5000
             if num_lamps > MAX_LAMPS:
                 return render_template('lamp.html',
                                        error='Unable to handle more than %d lamps' % MAX_LAMPS)
             image = lamps.resize_image(image, lamps=num_lamps)
         elif resize == 'size':
-            try:
-                width = int(request.form.get('width', '90'))
-            except ValueError:
-                width = 90
-            try:
-                height = int(request.form.get('height', '60'))
-            except ValueError:
-                height = 60
             if height * width > MAX_LAMPS:
                 return render_template('lamp.html',
                                        error='Unable to handle more than %d lamps' % MAX_LAMPS)
@@ -128,7 +119,9 @@ def process_lamps():
         
         return render_template('lamp.html', bp=bp, 
                                cache_filename=cache_filename, cache_dir=cache_dir,
-                               preview=preview.decode("utf-8"), stats=stats)
+                               preview=preview.decode("utf-8"), stats=stats,
+                               resize=resize, width=width, height=height,
+                               num_lamps=num_lamps)
 
     return render_template('lamp.html')
 
