@@ -11,25 +11,31 @@
   <br>
 {% endif %}
 
+<script>
+function checkElement(element) {
+  document.getElementById(element).checked = true;
+}
+</script>
+
 <form method=post enctype=multipart/form-data>
 <div><fieldset class="fieldset-auto-width">
   <legend>Size Options</legend>
-  <input type=radio name=resize value=lamps
+  <label><input type=radio name=resize value=lamps id="resize_lamps"
   {% if 'lamps' == resize %}checked{% endif %}>Fixed number of lamps:
-  <input type=number name=lamps style="width: 7em" 
-   value={% if num_lamps %}{{num_lamps}}{% else %}5000{% endif %}>
+  <input type=number name=lamps style="width: 7em" onclick=checkElement("resize_lamps")
+   value={% if num_lamps %}{{num_lamps}}{% else %}5000{% endif %}></label>
 <br>
-  <input type=radio name=resize value=size
+  <label><input type=radio name=resize value=size id="resize_size"
   {% if 'size' == resize %}checked{% endif %}>Specify width and height:
-  <input type=number name=width style="width: 7em" 
+  <input type=number name=width style="width: 7em" onclick=checkElement("resize_size")
    value={% if width %}{{width}}{% else %}90{% endif %}> x
-  <input type=number name=height style="width: 7em"
-   value={% if height %}{{height}}{% else %}60{% endif %}>
+  <input type=number name=height style="width: 7em" onclick=checkElement("resize_size")
+   value={% if height %}{{height}}{% else %}60{% endif %}></label>
 <br>
-  <input type=radio name=resize value=default 
+  <label><input type=radio name=resize value=default 
   {% if not resize or resize == 'default' %} 
     checked
-  {% endif %}> Default scaling
+  {% endif %}>Default scaling</label>
 <!-- The final conversion to blueprint via json makes a hashmap too large for memory
 <br>
   <input type=radio name=resize value=none> No resizing (warning: likely to be huge!)
@@ -40,22 +46,22 @@
 
 <div><fieldset class="fieldset-auto-width">
   <legend>Color Options</legend>
-  <input type=radio name=colors value=base 
+  <label><input type=radio name=colors value=base 
    {% if not colors or colors == 'base' %}checked{% endif %}>Base colors
-  <input type=checkbox name=base_black value=True {% if not base_black is defined or base_black is sameas true %}checked{% endif %}>Use unlit lamps for black
+  <input type=checkbox name=base_black value=True {% if not base_black is defined or base_black is sameas true %}checked{% endif %}>Use unlit lamps for black</label>
   <br>
-  <input type=radio name=colors value=expanded
-   {% if 'expanded' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
-  <input type=radio name=colors value=dectorio
-   {% if 'dectorio' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a><br>
+  <label><input type=radio name=colors value=expanded
+   {% if 'expanded' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a></label><br>
+  <label><input type=radio name=colors value=dectorio
+   {% if 'dectorio' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a></label><br>
 </fieldset></div>
 <br>
 <div><fieldset class="fieldset-auto-width">
   <legend>Color Reduction Method</legend>
-  <input type=radio name=method value=kmeans
-   {% if not method or method == 'kmeans' %}checked{% endif %}>KMeans<br>
-  <input type=radio name=method value=nearest
-   {% if 'nearest' == method %}checked{% endif %}>Nearest color match<br>
+  <label><input type=radio name=method value=kmeans
+   {% if not method or method == 'kmeans' %}checked{% endif %}>KMeans</label><br>
+  <label><input type=radio name=method value=nearest
+   {% if 'nearest' == method %}checked{% endif %}>Nearest color match</label><br>
 </fieldset></div>
 
 <br>
