@@ -1,1 +1,70 @@
-Hello
+<html>
+<body>
+<p>
+Converts images to blueprints of factorio lamps.
+</p><p>
+This isn't the most useful thing ever, but it's been a good exercise in putting together a webpage, which I hadn't done in about 10 years.
+</p><p>
+There are 3 basic options for choosing the number of lamps.  You can
+specify a specific size to resize to, you can ask for an estimated
+number of lamps and the program will scale the image appropriately, or
+you can let the program use a default scaling, which makes the larger
+dimension 90 and the smaller dimension proportional.
+</p><p>
+On a reasonably new laptop it is also possible to set the program to
+not rescale at all, but even for a moderately sized image this is far
+too many lamps to be practical as a factorio blueprint.  On a cheapass
+EC2 instance it completely nukes the memory to use more than ~100,000
+lamps when building the blueprint.  Note that while it would be easy
+to say, hey programmer do a better fucking job, actually it's the json
+to blueprint conversation itself that takes up all this memory, so
+there isn't a whole lot of room to squeeze in extra lamps.
+</p><p>
+Support is included for base colors, either with or without black
+represented as a powered down lamp, and for a couple mods.  There is
+at least one more mod I know of which adds a bunch of colors,
+<a href="https://mods.factorio.com/mod/color-coding">factorio-color-coding</a>,
+but it adds new lamp types rather than new lamp signals, and I'm too
+lazy to accommodate that.
+</p><p>
+Currently there are two color conversion methods available.
+</p><p>
+The first is to use kmeans clustering to come up with K clusters,
+where K is the number of colors available (8 in the base game, for
+example).  It then uses min cost flow to assign each cluster to a lamp
+color in such a way as to minimize the total distance from cluster
+color to lamp color.  Super overkill, but it's better than randomly
+assigning colors.
+</p><p>
+The second is to assign each pixel to the lamp with the closest color.
+If done using L2 in RGB space, this is completely terrible and
+everything comes back black or white.
+<a href=https://en.wikipedia.org/wiki/Color_difference>Therefore I
+convert the image and the lamp colors to Lab space and use
+CIEDE2000 to find the closest lamp color for each pixel.</a>
+This is actually quite slow, since the formula is so complex, so to
+save time I cluster the image into 100 clusters and assign each
+cluster to the nearest lamp color.  The difference is basically
+unnoticeable.
+</p><p>
+Future work is even more overkill: add a deep learning segmentation
+model to first separate the image into foreground and background, then
+color those regions independently.  That will be a good exercise for
+learning how to use the latest version of tensorflow or pytorch.  The
+last version of TF which I used didn't have eager as default, for
+example.
+</p><p>
+I find that kmeans gives results that are amusing when used with the
+base color lamps.  For example, turning my daughter's face blue & cyan
+because her stroller was pink.  nearest neighbor actually looks kind
+of credible when used in combination with a mod.  kmeans and mods
+winds up looking like you smashed a kaleidescope on the ground, and
+nearest neighbor and base doesn't really have enough color depth to
+look meaningful.
+</p><p>
+Disclaimers: not responsible for how slow your factorio map gets when
+you try to build a blueprint with too many lamps.  Not responsible for
+the content of any of the images you convert to lamp blueprints.
+</p>
+</body>
+</html>
