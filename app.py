@@ -86,16 +86,17 @@ def process_lamps():
                                    error='Unknown resize option')
 
         colors = request.form.get('colors', 'base')
+        base_black = request.form.get('base_black', 'False') == 'True'
         if colors == 'expanded':
             color_set = lamps.EXPANDED_LAMP_COLORS
             disable_black = False
         elif colors == 'dectorio':
             color_set = lamps.DECTORIO_LAMP_COLORS
             disable_black = False
-        elif colors == 'base':   # include 'base' or undefined
+        elif colors == 'base':
             color_set = lamps.BASE_COLORS
             disable_black = True
-            if not bool(request.form.get('base_black', None)):
+            if not base_black:
                 color_set = [x for x in color_set if x.name != 'signal-black']
         else:
             return render_template('lamp.html',
@@ -121,7 +122,8 @@ def process_lamps():
                                cache_filename=cache_filename, cache_dir=cache_dir,
                                preview=preview.decode("utf-8"), stats=stats,
                                resize=resize, width=width, height=height,
-                               num_lamps=num_lamps, colors=colors, method=method)
+                               num_lamps=num_lamps, colors=colors, method=method,
+                               base_black=base_black)
 
     return render_template('lamp.html')
 

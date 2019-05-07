@@ -42,7 +42,7 @@
   <legend>Color Options</legend>
   <input type=radio name=colors value=base 
    {% if not colors or colors == 'base' %}checked{% endif %}>Base colors
-  <input type=checkbox name=base_black value=true checked>Use unlit lamps for black
+  <input type=checkbox name=base_black value=True {% if not base_black is defined or base_black is sameas true %}checked{% endif %}>Use unlit lamps for black
   <br>
   <input type=radio name=colors value=expanded
    {% if 'expanded' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
