@@ -85,32 +85,32 @@ def process_lamps():
             return render_template('lamp.html',
                                    error='Unknown resize option')
 
-        colors = request.form.get('color', 'base')
+        colors = request.form.get('colors', 'base')
         if colors == 'expanded':
-            colors = lamps.EXPANDED_LAMP_COLORS
+            color_set = lamps.EXPANDED_LAMP_COLORS
             disable_black = False
         elif colors == 'dectorio':
-            colors = lamps.DECTORIO_LAMP_COLORS
+            color_set = lamps.DECTORIO_LAMP_COLORS
             disable_black = False
         elif colors == 'base':   # include 'base' or undefined
-            colors = lamps.BASE_COLORS
+            color_set = lamps.BASE_COLORS
             disable_black = True
             if not bool(request.form.get('base_black', None)):
-                colors = [x for x in colors if x.name != 'signal-black']
+                color_set = [x for x in color_set if x.name != 'signal-black']
         else:
             return render_template('lamp.html',
                                    error='Unknown color set')
 
         method = request.form.get('method', 'kmeans')
         if method == 'kmeans':
-            bp, _ = lamps.convert_image_to_blueprint_kmeans(image, colors, disable_black)
+            bp, _ = lamps.convert_image_to_blueprint_kmeans(image, color_set, disable_black)
         elif method == 'nearest':
-            bp, _ = lamps.convert_image_to_blueprint_nearest(image, colors, disable_black)
+            bp, _ = lamps.convert_image_to_blueprint_nearest(image, color_set, disable_black)
         else:
             return render_template('lamp.html',
                                    error='Unknown color reduction method')
 
-        preview_image = lamps.convert_blueprint_to_preview(bp, colors)
+        preview_image = lamps.convert_blueprint_to_preview(bp, color_set)
         f = io.BytesIO()
         preview_image.save(f, format="PNG")
         preview = base64.b64encode(f.getvalue())
@@ -121,7 +121,7 @@ def process_lamps():
                                cache_filename=cache_filename, cache_dir=cache_dir,
                                preview=preview.decode("utf-8"), stats=stats,
                                resize=resize, width=width, height=height,
-                               num_lamps=num_lamps)
+                               num_lamps=num_lamps, colors=colors, method=method)
 
     return render_template('lamp.html')
 

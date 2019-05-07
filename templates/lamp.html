@@ -40,17 +40,22 @@
 
 <div><fieldset class="fieldset-auto-width">
   <legend>Color Options</legend>
-  <input type=radio name=color value=base checked>Base colors
+  <input type=radio name=colors value=base 
+   {% if not colors or colors == 'base' %}checked{% endif %}>Base colors
   <input type=checkbox name=base_black value=true checked>Use unlit lamps for black
   <br>
-  <input type=radio name=color value=expanded><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
-  <input type=radio name=color value=dectorio><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a><br>
+  <input type=radio name=colors value=expanded
+   {% if 'expanded' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Expanded_Color_Lamps">Expanded Color Lamps</a><br>
+  <input type=radio name=colors value=dectorio
+   {% if 'dectorio' == colors %}checked{% endif %}><a href="https://mods.factorio.com/mod/Dectorio">Dectorio</a><br>
 </fieldset></div>
 <br>
 <div><fieldset class="fieldset-auto-width">
   <legend>Color Reduction Method</legend>
-  <input type=radio name=method value=kmeans checked>KMeans<br>
-  <input type=radio name=method value=nearest>Nearest color match<br>
+  <input type=radio name=method value=kmeans
+   {% if not method or method == 'kmeans' %}checked{% endif %}>KMeans<br>
+  <input type=radio name=method value=nearest
+   {% if 'nearest' == method %}checked{% endif %}>Nearest color match<br>
 </fieldset></div>
 
 <br>
