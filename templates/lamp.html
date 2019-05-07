@@ -80,10 +80,10 @@
   <h2>Blueprint</h2>
   <textarea rows="10" cols="50" readonly id="blueprint">{{ bp }}</textarea>
 <br>
-  <button onclick="myFunction()">Copy blueprint to clipboard</button>
+  <button onclick="copyBlueprint()">Copy blueprint to clipboard</button>
 
 <script>
-function myFunction() {
+function copyBlueprint() {
   var copyText = document.getElementById("blueprint");
   copyText.select();
   document.execCommand("copy");
