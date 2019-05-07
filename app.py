@@ -15,6 +15,10 @@ application.config['MAX_CONTENT_PATH'] = 32 * 1024 * 1024
 def hello_world():
     return render_template('index.html')
 
+@application.route('/about_factorio_lamps.html')
+def about_lamps():
+    return render_template('about_factorio_lamps.html')
+
 @application.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(application.root_path, 'static'),
