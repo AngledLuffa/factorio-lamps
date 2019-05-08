@@ -246,7 +246,8 @@ def convert_entities_to_blueprint(entities):
 # All neighbors with -X or 0X and -Y within 10 spaces
 # Greatly cuts down the number of combinators needed
 # Ordered like this so the wires don't get excessively long
-POSSIBLE_NEIGHBORS = [(-1, 0), (0, -1), (-1, -1), (-1, 1),
+# -1,0 and 0,-1 are handled separately
+POSSIBLE_NEIGHBORS = [(-1, -1), (-1, 1),
                       (-2, 0), (0, -2),
                       (-2, -1), (-1, -2), (-2, 1), (-1, 2),
                       (-3, 0), (0, -3), (-2, -2), (-2, 2), 
@@ -258,45 +259,78 @@ POSSIBLE_NEIGHBORS = [(-1, 0), (0, -1), (-1, -1), (-1, 1),
                       (-2, -3), (-3, -3), (-4, -3),
                       (-1, -4), (-2, -4), (-3, -4), (0, -5)]
                       
-def find_neighbor(pixel_colors, lamps, i, j):
-    for x, y in POSSIBLE_NEIGHBORS:
-        if (i+x, j+y) not in lamps:
-            continue
-        if pixel_colors[i+x][j+y] == pixel_colors[i][j]:
-            return lamps[(i+x, j+y)]
-    return None
-
 def convert_to_blueprint(pixel_colors, width, height,
                          disable_black):
     entities = []
     lamps = {}
+    lamp_groupings = {}
+    grouping_lamps = {}
 
     for i in range(height):
         for j in range(width):
-            neighbor = find_neighbor(pixel_colors, lamps, i, j)
+            entity_num = len(entities) + 1
+            lamp = build_lamp(entity_num,
+                              j * 2 - width + 1,
+                              i * 2 - height)
+            lamps[(i, j)] = lamp
+            lamp_groupings[(i, j)] = entity_num
+            grouping_lamps[entity_num] = [(i, j)]
+            entities.append(lamp)
 
-            if neighbor:
-                lamp = build_lamp(len(entities) + 1,
-                                  j * 2 - width + 1,
-                                  i * 2 - height)
-                lamps[(i, j)] = lamp
-                add_bidirectional_connection(lamp, neighbor)
-                entities.append(lamp)
-            else:
-                color = pixel_colors[i][j]
-                enabled = not (color == 'signal-black' and disable_black)
-                combinator = build_combinator(len(entities) + 1,
-                                              j * 2 - width,
-                                              i * 2 - height,
-                                              color, enabled)
-                lamp = build_lamp(len(entities) + 2,
-                                  j * 2 - width + 1,
-                                  i * 2 - height)
-                lamps[(i, j)] = lamp
-                add_bidirectional_connection(combinator, lamp)
-                entities.append(combinator)
-                entities.append(lamp)
+    def merge_groupings(x, y):
+        if x == y:
+            return False
+        if len(grouping_lamps[y]) > len(grouping_lamps[x]):
+            x, y = y, x
+        for (i, j) in grouping_lamps[y]:
+            lamp_groupings[(i, j)] = x
+        grouping_lamps[x].extend(grouping_lamps[y])
+        grouping_lamps[y] = []
+        return True
 
+    for i in range(height):
+        for j in range(width-1):
+            if pixel_colors[i][j] == pixel_colors[i][j+1]:
+                if merge_groupings(lamp_groupings[(i, j)],
+                                   lamp_groupings[(i, j+1)]):
+                    add_bidirectional_connection(lamps[(i, j)],
+                                                 lamps[(i, j+1)])
+    for i in range(height-1):
+        for j in range(width):
+            if pixel_colors[i][j] == pixel_colors[i+1][j]:
+                if merge_groupings(lamp_groupings[(i, j)],
+                                   lamp_groupings[(i+1, j)]):
+                    add_bidirectional_connection(lamps[(i, j)],
+                                                 lamps[(i+1, j)])
+
+    for i in range(height):
+        for j in range(width):
+            for ni, nj in POSSIBLE_NEIGHBORS:
+                if i+ni < 0 or i+ni >= height:
+                    continue
+                if j+nj < 0 or j+nj >= width:
+                    continue
+                if pixel_colors[i][j] == pixel_colors[i+ni][j+nj]:
+                    if merge_groupings(lamp_groupings[(i, j)],
+                                       lamp_groupings[(i+ni, j+nj)]):
+                        add_bidirectional_connection(lamps[(i, j)],
+                                                     lamps[(i+ni, j+nj)])
+
+    # add combinators for the colors
+    for group, group_lamps in grouping_lamps.items():
+        if len(group_lamps) == 0:
+            continue
+
+        i, j = group_lamps[0]
+        color = pixel_colors[i][j]
+        enabled = not (color == 'signal-black' and disable_black)
+        combinator = build_combinator(len(entities) + 1,
+                                      j * 2 - width,
+                                      i * 2 - height,
+                                      color, enabled)
+        add_bidirectional_connection(lamps[(i, j)], combinator)
+        entities.append(combinator)
+    
     # add enough poles to cover the image
     pole_x_start = -width+3
     if pole_x_start % 2 == 1:
