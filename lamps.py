@@ -395,6 +395,7 @@ def convert_image_to_blueprint_nearest(image, colors, disable_black):
     flat_image = flat_image.reshape((width * height, 3))
 
     num_centroids = max(len(colors) * 2, 100)
+    num_centroids = min(width * height, num_centroids)
     centroids, labels = kmeans2(flat_image, num_centroids,
                                 iter=50, minit='points')
 
