@@ -497,6 +497,7 @@ def convert_blueprint_to_preview(blueprint, colors):
     return Image.fromarray(image, "RGB")
 
 def resize_image(image, shape=None, lamps=None, default=False):
+    width, height = image.size
     if shape:
         if lamps or default:
             raise RuntimeError("Can only specify one resize method")
@@ -504,8 +505,10 @@ def resize_image(image, shape=None, lamps=None, default=False):
     elif default:
         if lamps:
             raise RuntimeError("Can only specify one resize method")
-        width, height = image.size
-        if width > height:
+        if width < 90 and height < 90:
+            new_width = width
+            new_height = height
+        elif width > height:
             new_width = 90
             new_height = int(height / width * new_width)
         elif height > width:
@@ -515,7 +518,6 @@ def resize_image(image, shape=None, lamps=None, default=False):
             new_height = 90
             new_width = 90
     elif lamps:
-        width, height = image.size
         max_d = max(width, height)
         min_d = min(width, height)
         scaled_min = (lamps / (max_d / min_d)) ** 0.5
@@ -532,9 +534,13 @@ def resize_image(image, shape=None, lamps=None, default=False):
 
     new_width = max(1, new_width)
     new_height = max(1, new_height)
-    print("Original image size: %s.  Resizing to (%d, %d)" % 
-          (str(image.size), new_width, new_height))
-    image = image.resize((new_width, new_height))
+    if new_width == width and new_height == height:
+        print("Original image size: %s.  Not resizing" %
+              str(image.size))
+    else:
+        print("Original image size: %s.  Resizing to (%d, %d)" % 
+              (str(image.size), new_width, new_height))
+        image = image.resize((new_width, new_height))
     return image
 
 # https://www.daveperrett.com/articles/2012/07/28/exif-orientation-handling-is-a-ghetto/
