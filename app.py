@@ -31,6 +31,10 @@ MAX_LAMPS = 50000
 def process_lamps():
     if request.method == 'POST':
         # check if the post request has the file part
+        # there are two ways to get a file: from the cache
+        #   or as an attachment to the POST request
+        # cached files are saved as temporary files, so they
+        #   will eventually expire
         if 'image' in request.form and request.form['image'] == 'cache':
             cache_filename = secure_filename(request.form['cachefile'])
             cache_dir = secure_filename(request.form['cachedir'])
