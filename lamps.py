@@ -335,7 +335,7 @@ def convert_to_blueprint(pixel_colors, width, height,
     pole_x_start = -width+3
     if pole_x_start % 2 == 1:
         pole_x_start = pole_x_start - 1
-    pole_x = list(range(pole_x_start, width-2, 8))
+    pole_x = list(range(pole_x_start, width-2, 6))
     if len(pole_x) == 0:
         pole_x.append(pole_x_start)
     if pole_x[-1] < width - 3:
