@@ -4,13 +4,13 @@ decorator==4.4.0
 Flask==1.0.2
 imageio==2.5.0
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 kiwisolver==1.1.0
 MarkupSafe==1.1.1
 matplotlib==3.0.3
 networkx==2.3
 numpy==1.16.2
-Pillow==7.1.0
+Pillow==8.1.1
 pyparsing==2.4.0
 python-dateutil==2.8.0
 PyWavelets==1.0.3
