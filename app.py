@@ -19,6 +19,10 @@ def hello_world():
 def hips():
     return render_template('hips.html')
 
+@application.route('/foot.html')
+def foot():
+    return render_template('foot.html')
+
 @application.route('/about_factorio_lamps.html')
 def about_lamps():
     return render_template('about_factorio_lamps.html')
